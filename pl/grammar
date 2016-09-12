@@ -1,0 +1,51 @@
+% grammar: translation of grammar rules - 30 December 82
+
+$translate_rule((LP-->[]),H) :- !, $t_lp(LP,S,S,H).
+$translate_rule((LP-->RP),(H:-B)):-
+   $t_lp(LP,S,SR,H),
+   $t_rp(RP,S,SR,B1),
+   $tidy(B1,B).
+
+$t_lp((LP,List),S,SR,H):- !,
+   $append(List,SR,List2),
+   $add_extra_args([S,List2],LP,H).
+
+$t_lp(LP,S,SR,H) :- $add_extra_args([S,SR],LP,H).
+
+$t_rp(!,S,S,!) :- !.
+$t_rp([],S,S1,S=S1) :- !.
+$t_rp([X],S,SR,c(S,X,SR)) :- !.
+$t_rp([X|R],S,SR,(c(S,X,SR1),RB)) :- !, $t_rp(R,SR1,SR,RB).
+$t_rp({T0},S,S,T) :- !, $compile_arith(T0,T).
+$t_rp((T,R),S,SR,(Tt,Rt)) :- !,
+   $t_rp(T,S,SR1,Tt),
+   $t_rp(R,SR1,SR,Rt).
+$t_rp((T;R),S,SR,(Tt;Rt)) :- !,
+   $t_or(T,S,SR,Tt),
+   $t_or(R,S,SR,Rt).
+$t_rp(T,S,SR,Tt) :- $add_extra_args([S,SR],T,Tt).
+
+$t_or(X,S0,S,P) :-
+   $t_rp(X,S0a,S,Pa),
+ ( var(S0a), S0a \== S, !, S0=S0a, P=Pa;
+   P=(S0=S0a,Pa) ).
+
+$add_extra_args(L,T,T1) :-
+   T=..Tl,
+   $append(Tl,L,Tl1),
+   T1=..Tl1.
+
+$append([],L,L) :- !.
+$append([X|R],L,[X|R1]) :- $append(R,L,R1).
+
+$tidy((P1;P2),(Q1;Q2)) :- !,
+   $tidy(P1,Q1),
+   $tidy(P2,Q2).
+$tidy(((P1,P2),P3),Q) :- $tidy((P1,(P2,P3)),Q).
+$tidy((P1,P2),(Q1,Q2)) :- !,
+   $tidy(P1,Q1),
+   $tidy(P2,Q2).
+$tidy(A,A) :- !.
+
+c([X|S],X,S).
+

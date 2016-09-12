@@ -1,0 +1,17 @@
+/* all: Load all the current bits of the standard Prolog system
+
+                                                 Fernando Pereira
+                                                 Updated: 30 December 82
+*/
+
+:-([
+	 'pl/arith',		   % Arithmetic compilation
+         'pl/grammar',             % DCG grammar rule translation
+	 'pl/setof',		   % Setof and sorting
+         'pl/tracing',             % Debugging evaluable predicates
+         'pl/listing'              % Listing the database
+   ]).
+
+
+:-([     'pl/protect'    ]).       % Lock things up
+

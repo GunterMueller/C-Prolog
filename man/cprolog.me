@@ -1,0 +1,2891 @@
+.po 1.1i
+.he 'C-Prolog\ User\'s\ Manual''%'
+.ds Vn 1.5
+.tp
+.(l C
+.sz +4
+C-Prolog User's Manual
+.sz -4
+.sp
+.sp
+Version \*(Vn
+\*(td
+.sp
+Edited by Fernando Pereira\**
+.(f
+\**Formerly at EdCAAD, Dept. of Architecture, University of Edinburgh
+.)f
+SRI International, Menlo Park, California
+.sp
+from material by
+.sp
+David Warren
+SRI International, Menlo Park, California
+.sp
+David Bowen, Lawrence Byrd
+Dept. of Artificial Intelligence, University of Edinburgh
+.sp
+Luis Pereira
+Dept. de Informatica, Universidade Nova de Lisboa
+.)l
+.(l C
+\fIAbstract\fP
+.)l
+.sp
+.(l F
+This is a revised edition of the user's manual for C-Prolog,
+a Prolog interpreter written in C for 32 bit machines.
+C-Prolog is based on an earlier Prolog interpreter written
+in IMP for the EMAS operating system
+by Luis Damas, who borrowed many
+aspects of the design from the DECsystem-10/20 Prolog system
+developed by David Warren, Fernando Pereira, Lawrence Byrd
+and Luis Pereira.
+This manual is based on the EMAS Prolog manual, which
+in turn was based on the DECsystem-10/20 Prolog manual.
+.)l
+.bp
+.sh 1 "Using C-Prolog"
+.pp
+.sh 2 "Preface"
+.pp
+This manual describes C-Prolog, a Prolog interpreter written in C.
+C-Prolog was developed at EdCAAD, Dept. of Architecture, University
+of Edinburgh, and
+is based on a previous interpreter, written in IMP for
+the EMAS operating system by
+Luis Damas of the Dept. of
+Computer Science, University of Edinburgh.
+C-Prolog was designed for machines with a large, uniform, address space,
+and assumes a pointer cell 32 bits wide. At the time of writing,
+it has been tested on VAX\**
+.(f
+\**VAX, VMS, PDP and DECsystem-10 are trademarks of
+Digital Equipment Corporation.
+.)f
+machines under the \s-2UNIX\s0\**
+.(f
+\**\s-2UNIX\s0 is a Trademark of Bell Laboratories.
+.)f
+and VAX/VMS operating systems, on the Sun workstation
+under 4.1/2 \s-2UNIX\s0,
+and has been ported with minor changes to
+other MC68000-based workstations and to the Three Rivers PERQ.
+.pp
+Prolog is a simple but powerful programming language
+originally developed at the University of Marseilles, as
+a practical tool for programming in logic.
+From a user's point of view the major attraction of the language
+is ease of programming.
+Clear, readable, concise programs can be written quickly with few errors.
+Prolog is especially suitable for high-level symbolic programming tasks
+and has been applied in many areas of Artificial Intelligence research.
+.pp
+The system consists of a Prolog interpreter and a wide range of
+builtin (system defined) procedures.
+Its design was based on the (Edinburgh) DECsystem-10 Prolog system and the system
+is closely compatible with DECsystem-10 Prolog and thus is also
+reasonably close to PDP-11 \s-2UNIX\s0 and RT-11 Prolog.
+.pp
+This manual is not intended as an introduction to
+the Prolog language and how to use it.
+For this purpose you should study:
+.(l
+\fIProgramming in Prolog\fP
+W. Clocksin & C. Mellish
+Springer Verlag  1981
+.)l
+.pp
+This manual assumes that you are familiar with the principles of the
+Prolog language, its purpose being to explain how to use C-Prolog,
+and to describe all the evaluable predicates provided by C-Prolog.
+.sh 2 "Using C-Prolog \*- Overview"
+.pp
+C-Prolog offers the user
+an interactive programming environment with
+tools for incrementally building programs, debugging programs by following
+their executions, and modifying parts of programs without having to
+start again from scratch.
+.pp
+The text of a Prolog program is normally created in a
+number of files
+using a text editor.
+C-Prolog can then be instructed to read-in programs
+from these files; this is called \fIlconsulting\fP the file.
+To change parts of a program being run, it is possible
+to \fIreconsult\fP files containing the changed parts.
+Reconsulting means that definitions for procedures in the file will
+replace any old definitions for these procedures.
+.pp
+It is recommended that you make use of a number of different files
+when writing programs.
+Since you will be editing and consulting/reconsulting
+individual files it is useful to use files to group together related
+procedures;
+keeping collections of procedures that do different things in different files.
+Thus a Prolog program will consist of a number of files,
+each file containing a number of related procedures.
+.pp
+When your programs start to grow to a fair size, it is also a good idea
+to have one file which just contains commands to the interpreter
+to consult all the other files which form a program.
+You will then be able to consult your entire program by just consulting
+this single file.
+.sh 2 "Access to C-Prolog"
+.pp
+In this manual,
+we assume that there is a command on your computer
+.(l
+prolog
+.)l
+that invokes C-Prolog.
+.pp
+We assume that there are three keys or key combinations that achieve
+the effects of terminating an input line, marking end of input,
+and interrupting execution of a program. Because these depend
+on operating system and individual tastes, they are denoted in this manual
+by \s-2END-OF-LINE\s0, \s-2END-OF-INPUT\s0 and \s-2INTERRUPT\s0 respectively
+(they are carriage return, control-Z and control-C on the computer
+this is being written on).
+.pp
+Since Prolog makes syntactic use of the difference between upper and
+lower case it is important that you have your terminal set up
+so that it accepts lower case in the normal way.
+This means, for a start, that you must be using an upper and lower case
+terminal - and not, for example, an upper case only teletype.
+It is possible to use Prolog using upper case only
+(see Section 2.4)
+but it is unnecessarily painful.
+We shall assume both upper and lower case throughout this manual.
+
+If you type the `prolog' command,
+Prolog will output a banner and prompt you for directives as follows:
+.(l
+C-Prolog version \*(Vn
+| ?- 
+.)l
+There will be a pause between the first line and the prompt while the
+system loads itself. It is possible to type ahead during this period if
+you get impatient.
+.pp
+If you give an argument to the `prolog' command,
+C-Prolog will interpret it as the name of a file containing
+a saved state created earlier, and will restore that saved state.
+Saved states will be explained fully later.
+.(l
+prolog prog	    (Restore \*(lqprog\*(rq)
+.)l
+.pp
+C-Prolog uses six major internal data areas: the \fIheap\fP,
+the \fIglobal stack\fP, the \fIlocal stack\fP, the \fItrail\fP,
+the \fIatom area\fP and the \fIauxiliary stack\fP. Although
+the system is initially configured with reasonable allocations
+for each of those areas, a particular program might exceed
+one of the allocations, causing an error message. Ideally,
+the system should adjust the available storage among areas
+automatically, but this facility is not implemented yet.
+Instead, the user may specify when starting Prolog the allocations
+(in K bytes) for some or all of the areas. This is done by giving
+command line switches between the program name and the optional
+file argument. For example,
+.(l
+prolog -h 1000 -g 1000 -l 500 bigprogram
+.)l
+specifies heap and global stack allocations of 1000 K and a local
+stack allocation of 500 K. The full set of switches is:
+.(l
+.TS
+l l.
+-h \fIN\fP	heap allocation is \fIN\fP K bytes
+-g \fIN\fP	global stack allocation is \fIN\fP K bytes
+-l \fIN\fP	local stack allocation is \fIN\fP K bytes
+-t \fIN\fP	trail allocation is \fIN\fP K bytes
+-a \fIN\fP	atom area allocation is \fIN\fP K bytes
+-x \fIN\fP	auxiliary stack allocation is \fIN\fP K bytes
+.TE
+.)l
+.sh 2 "Reading-in Programs"
+.pp
+A  program  is  made  up  of  a  sequence  of  clauses,  possibly
+interspersed  with  directives  to  the interpreter.  The clauses of a
+procedure do not have to be immediately consecutive, but remember that
+their  relative  order  may  be  important.
+.pp
+To input a program from a file \fIfile\fP, give the directive:
+.(l
+| ?- [\fIfile\fP].
+.)l
+which will instruct the interpreter to consult the  program.
+The file specification \fIfile\fP must be a Prolog atom.
+It may be any file name, note that if this file name contains
+characters which are not normally allowed in an atom
+then it is  necessary to surround the whole file specification with
+single quotes (since quoted atoms can include any character), for example
+.(l
+| ?- ['people/greeks'].
+.)l
+The specified file is then read in.
+Clauses in the file are stored in the database ready to be
+executed, while any directives
+are obeyed as they are encountered.
+When the end of the file is found,  the
+interpreter displays on the terminal the time spent in reading-in  and
+the  number  of  bytes occupied  by  the program.
+.pp
+In general, this directive can be any list of filenames, such as:
+.(l
+| ?- [myprogram, extras, testbits].
+.)l
+In this case all three files would be consulted. If a filename is preceded
+by a minus sign, as in:
+.(l
+| ?- [-testbits, -moreideas].
+.)l
+then that file is reconsulted. The difference between consulting and
+reconsulting is important, and works as follows:
+if a file is consulted then all the clauses in the file are simply added
+to C-Prolog's database. If you consult the same file twice then you will
+get two copies of all the clauses.
+However, if a file is reconsulted then the clauses for all 
+the procedures in the file will replace any existing clauses for those
+procedures, that is
+any such previously existing clauses in the database get thrown away.
+Reconsulting is useful for telling Prolog about corrections in your program.
+.pp
+Clauses may also be typed in directly at the terminal.
+To enter clauses at the terminal,
+you must give the directive:
+.(l
+| ?- [user].
+.)l
+The interpreter is now in a state where it expects input of clauses or
+directives.
+To get back  to  the top level of the interpreter, type the \s-2END-OF-INPUT\s0
+character.
+.pp
+Typing clauses directly into C-Prolog
+is only  recommended  if  the  clauses  will  not  be  needed
+permanently, and are few in number.
+For significant bits of program you should use an editor to produce
+a file containing the text of the program.
+.sh 2 "Directives:  Questions and Commands"
+.pp
+When Prolog is at top level (signified by an initial prompt of \*(lq|\ ?-\ \*(rq,
+with continuation lines prompted with \*(lq|\ \ \ \ \*(rq, that is indented out from
+the left margin) it reads in terms and treats them as directives to
+the interpreter to try and satisfy some goals.
+These directives are called questions.
+Remember that Prolog terms must terminate with a period (\*(lq.\*(rq), and
+that therefore Prolog will not execute anything for you until you
+have typed the period (and then \s-2END-OF-LINE\s0) at the end
+of the directive.
+.pp
+Suppose list membership has been defined by:
+.(l
+member(X,[X|\(ul]).
+member(X,[\(ul|L]) :- member(X,L).
+.)l
+(Note the use of anonymous variables written \*(lq\(ul\*(rq).
+.pp
+If the goal(s) specified in a question can be satisfied, and if there are
+no variables as in this example:
+.(l
+| ?- member(b,[a,b,c]).
+.)l
+then the system answers
+.(l
+yes
+.)l
+and execution of the question terminates.
+.pp
+If variables are included in the question, then the final value of each
+variable is displayed (except for anonymous variables).
+Thus the question
+.(l
+| ?- member(X,[a,b,c]).
+.)l
+would be answered by
+.(l
+X = a 
+.)l
+At this point the interpreter is waiting for you to indicate whether
+that solution is sufficient, or whether you want it to backtrack to see
+if there are any more solutions.
+Simply typing \s-2END-OF-LINE\s0 terminates the question, while 
+typing \*(lq;\*(rq followed by \s-2END-OF-LINE\s0 causes the
+system to backtrack looking for alternative solutions.
+If no further solutions can be found it outputs
+.(l
+no
+.)l
+The outcome of some questions is  shown  below,  where  a  number
+preceded by \*(lq\(ul\*(rq is a system-generated name for a variable.
+.(l
+| ?- member(X,[tom,dick,harry]).
+X = tom ;
+X = dick ;
+X = harry ;
+no
+| ?- member(X,[a,b,f(Y,c)]),member(X,[f(b,Z),d]).
+Y = b,
+X = f(b,c),
+Z = c
+ 			% Just \s-2END-OF-LINE\s0 typed here
+yes
+| ?- member(X,[f(\(ul),g]).
+X = f(\(ul1728)
+yes
+| ?- 
+.)l
+When C-Prolog reads terms from a file (or from the terminal following a call to
+[user]), it treats them all as program clauses. In order to get the
+interpreter to execute directives from a file they must be preceded by
+\&`?-', for questions, or `:-', for commands.
+.pp
+Commands are like questions except that they do not cause
+answers to be printed out.
+They always start with the symbol \*(lq:-\*(rq. At top level this is simply
+written after the prompted \*(lq?-\*(rq which is then effectively overridden.
+Any required output must be programmed explicitly; for example, the command
+.(l
+:- member(3,[1,2,3]), write(ok).
+.)l
+directs the system to check whether 3 belongs to the list [1,2,3], and
+to output \*(lqok\*(rq if so.  Execution of a command terminates when all the
+goals  in  the  command  have  been  successfully   executed.    Other
+alternative  solutions  are  not  sought (one may imagine an implicit
+\*(lqcut\*(rq at the end of the command).  If no solution  can  be  found,  the
+system gives:
+.(l
+?
+.)l
+as a warning.
+.pp
+The main use for commands (as opposed to questions) is to allow
+files to contain directives which call various procedures, but for which
+you don't want to have the answers printed out.
+In such cases you only want to call the procedures for effect.
+A useful example would be the use of a
+directive in a file which consults a whole
+list of other files, such as\**:
+.(f
+\**The extra parentheses, with the `:-' immediately
+next to them, are currently essential due to a problem with
+prefix operators (like `:-') and lists. They are not
+required for commands that do not contain lists.
+This restriction will be eventually removed.
+.)f
+.(l
+:-([ bits, bobs, mainpart, testcases, data, junk ]).
+.)l
+.pp
+If this directive was contained in the file `program' then typing the
+following at top level would be a quick way of loading your
+entire program:
+.(l
+| ?- [program].
+.)l
+.pp
+When you are
+simply interacting with the top level of the Prolog interpreter
+the distinction between questions and commands is not very important.
+At the top level you should normally only type questions. In a file, if you
+wish to execute some goals then you should use a command. 
+That is, to execute a
+directive in a file it must be preceded by \*(lq:-\*(rq, otherwise it will be
+treated as a clause.
+.sh 2 "Saving A Program"
+.pp
+Once a program has been read, the interpreter will have available
+all  the information necessary for its execution.  This information is
+called a program \fIstate\fP.
+.pp
+The state of a program may be saved on a file for future execution.
+To save a program into a file \fIfile\fP, perform the command:
+.(l
+?- save(\fIfile\fP).
+.)l
+\fBSave\fP can be called at top level, from within a break level (q.v.),
+or from anywhere within a program.
+.sh 2 "Restoring A Saved Program"
+.pp
+Once a program has been saved into a  file  \fIfile\fP, C-Prolog
+can be restored to this saved state by invoking it
+as follows:
+.(l
+prolog \fIfile\fP
+.)l
+After execution of this command, the interpreter will be in \fIexactly\fP the
+same state as existed immediately prior to the  call  to  \fBsave\fP,
+except for open files, which are automatically closed by \fBsave\fP.
+That is to say execution will start at the goal immediately following the
+call to \fBsave\fP, just as if \fBsave\fP had returned successfully.
+If you saved the state at top level then you will be back at top level,
+but if you explicitly called \fBsave\fP from within your program then the
+execution of your program will continue.
+.pp
+Saved states can only be restored when C-Prolog is initially run from
+command level. Version \*(Vn provides no way of restoring a saved state from
+inside C-Prolog.
+.pp
+Note that when a new version of C-Prolog is  installed,
+saved states created with the old version may become unusable.
+You are thus advised to rely on source files for your programs and
+not on some gigantic saved state.
+.sh 2 "Program Execution And Interruption"
+.pp
+Execution of a program is started by  giving  the  interpreter  a
+directive which contains a call to one of the program's procedures.
+.pp
+Only when  execution  of  one  directive  is  complete  does  the
+interpreter  become  ready  for  another  directive.  However, one may
+interrupt the normal execution of a directive by hitting the \s-2INTERRUPT\s0 key
+on your terminal.
+In response to the prompt
+.(l
+Action (h for help):
+.)l
+you can type either \*(lqa\*(rq, \*(lqt\*(rq, \*(lqd\*(rq or \*(lqc\*(rq followed by \s-2END-OF-LINE\s0.
+The \*(lqa\*(rq response will force Prolog to abort back to top level,
+the \*(lqt\*(rq option will switch on tracing,
+the 
+\*(lqd\*(rq response  will switch on debugging and continue the execution,
+and the \*(lqc\*(rq response will just continue the execution.
+.sh 2 "Nested Executions \*- Break and Abort"
+.pp
+C-Prolog provides a way to suspend the execution of your program
+and to enter a new incarnation of the top level where you can issue
+directives to solve goals etc.
+When the evaluable predicate \fBbreak\fP is called,
+the message
+.(l
+[ Break  (level 1) ]
+.)l
+will be displayed.  This signals the start of a \fIbreak\fP
+and except
+for  the  effect  of \fBabort\fPs (see below), it is as if the interpreter
+was at top level.
+If break is called within a break, then another recursive break is
+started (and the message will say (level 2) etc).
+Breaks can be arbitrarily nested.
+.pp
+Typing the \s-2END-OF-INPUT\s0  character
+will  close  the  break  and resume  the  execution which
+was suspended, starting at the procedure call where the suspension took
+place.
+.pp
+To abort the  current  execution, forcing  an  immediate
+failure of the directive being executed 
+and a return to the top level of the interpreter,
+call the evaluable predicate \fBabort\fP, either from  the  program
+or by executing the directive:
+.(l
+| ?- abort.
+.)l
+within a break.  In this case no \s-2END-OF-INPUT\s0 character is needed to close the
+break, because \fIall\fP break levels are discarded and the system returns right
+back to top level. The \*(lqa\*(rq response to \s-2INTERRUPT\s0 (described above) can also
+be used to force an abort.
+.sh 2 "Exiting From The Interpreter"
+.pp
+To exit from C-Prolog interpreter
+you should give the directive:
+.(l
+| ?- halt.
+.)l
+This can be issued either at top level, or within a break,
+or indeed from within your program.
+.pp
+If your program is still executing then you should interrupt it and abort
+to return to top level 
+so that you can call \fBhalt\fP.
+.pp
+Typing
+the \s-2END-OF-INPUT\s0 charater at
+top level also causes C-Prolog to terminate.
+.sh 1 "Prolog Syntax"
+.pp
+.sh 2 "Terms"
+.pp
+The data objects of the language are called  \fIterm\fPs.
+A  term  is either a \fIconstant\fP, a \fIvariable\fP or a \fIcompound term\fP.
+.pp
+The constants include \fInumber\fPs such as
+.(l
+0   -999   -5.23  0.23E-5
+.)l
+.pp
+Constants also include \fIatom\fPs such as
+.(l
+a   void   =   :=   'Algol-68'   []
+.)l
+The symbol for an atom can be any sequence of characters, 
+written  in single quotes if there is possibility of confusion with other
+symbols (such as variables or numbers). As in other  programming
+languages,  constants  are definite elementary objects.
+.pp
+Variables are distinguished by an initial capital  letter  or  by
+the initial character \*(lq\(ul\*(rq, for example
+.(l
+X   Value   A   A1   \(ul3   \(ulRESULT
+.)l
+If a variable is only referred to once, it does not need to  be  named
+and  may  be  written as an \fIanonymous\fP variable, indicated by the
+underline character \*(lq\(ul\*(rq.
+.pp
+A variable should be thought of as  standing  for  some  definite  but
+unidentified  object.
+A variable  is  not  simply  a  writeable
+storage  location  as  in  most programming languages;  rather it is a
+local name for some data object, cf.  the variable of  pure  LISP  and
+constant declarations in Pascal.
+.pp
+The structured data objects of the language are the compound terms.  A
+compound term comprises a \fIfunctor\fP (called the \fIprincipal\fP functor of
+the term) and a sequence of one or more terms called \fIarguments\fP.
+A functor is characterised by its \fIname\fP, which is an atom, and its
+\fIarity\fP or number of arguments.
+For example the compound term whose functor is
+named `point' of arity 3, with arguments X, Y and Z, is written
+.(l
+point(X,Y,Z)
+.)l
+An atom is considered to be a functor of arity 0.
+.pp
+One  may  think  of  a  functor  as  a record type and the
+arguments of a compound term as the  fields  of  a  record.   Compound
+terms are usefully pictured as trees.  For example, the term
+.(l
+s(np(john),vp(v(likes),np(mary)))
+.)l
+would be pictured as the structure
+.(b
+       s
+     /   \e
+   np      vp   
+   |      /  \e
+ john    v     np
+         |     |
+       likes  mary
+.)b
+.pp
+Sometimes it is convenient to write certain functors as \fIoperators\fP
+\*- 2-ary functors may be declared as \fIinfix\fP operators and 1-ary functors
+as \fIprefix\fP or \fIpostfix\fP operators.
+Thus it is possible to write
+.(l
+X+Y     (P;Q)     X<Y      +X     P;
+.)l
+as optional alternatives to
+.(l
++(X,Y)   ;(P,Q)   <(X,Y)   +(X)   ;(P)
+.)l
+Operators are described fully in the next section.
+.pp
+\fIList\fPs form an important class of data structures in Prolog.
+They  are essentially  the  same  as  the  lists  of LISP:
+a list either is the atom
+.(l
+[]
+.)l
+representing the empty list, or is a compound term  with  functor  `.'
+and  two  arguments  which  are  respectively the head and tail of the
+list.  Thus  a  list  of  the  first  three  natural  numbers  is  the
+structure
+.(b
+  .
+ / \e
+1    .
+    / \e
+   2    .
+       / \e
+      3   []
+.)b
+which could be written, using the standard syntax, as
+.(l
+\&.(1,.(2,.(3,[])))
+.)l
+but which is normally written, in a special list notation, as
+.(l
+[1,2,3]
+.)l
+The special list notation in the case when the tail of  a  list  is  a
+variable is exemplified by
+.(l
+[X|L]     [a,b|L]
+.)l
+representing
+.(b
+   .                .
+  / \e             / \e
+X     L          a    .
+                     / \e
+                   b     L
+.)b
+respectively.
+.pp
+Note that this list syntax is only syntactic sugar for terms of the form
+\&`.'(\(ul,\(ul) and does not provide any additional facilities that were not
+available in Prolog.
+.pp
+For convenience, a further  notational  variant  is  allowed  for
+lists  of  integers  which correspond to ASCII character codes.  Lists
+written in this notation are called \fIstring\fPs.
+For example,
+.(l
+"Prolog"
+.)l
+represents exactly the same list as
+.(l
+[80,114,111,108,111,103]
+.)l
+.sh 2 "Operators"
+.pp
+Operators in Prolog are simply a notational convenience.
+For example, the expression
+.(l
+2 + 1
+.)l
+could also be written +(2,1).
+It should be noticed that this expression represents the structure
+.(b
+   +
+ /   \e
+2     1
+.)b
+and not the number 3.
+The addition would only be performed if the structure was passed as an
+argument to an appropriate procedure (such as \fBis\fP - see Section 5.2).
+.pp
+The Prolog syntax caters for operators  of  three  main  kinds  -
+infix, prefix and postfix.
+An infix operator appears between its two arguments, while a prefix operator
+precedes its single argument and a postfix operator is written after its
+single argument.
+.pp
+Each operator has a \fIprecedence\fP, which is a
+number from  1  to  1200.  The  precedence  is  used  to  disambiguate
+expressions  where  the  structure  of  the  term  denoted is not made
+explicit through the  use  of  brackets.   The  general  rule
+is that the operator with the
+\fIhighest\fP precedence is the principal functor.  Thus if `+'  has  a
+higher precedence than `/', then
+.(l
+a+b/c     a+(b/c)
+.)l
+are equivalent and denote the term \*(lq+(a,/(b,c))\*(rq.
+Note that the  infix
+form of the term \*(lq/(+(a,b),c)\*(rq must be written with explicit brackets
+.(l
+(a+b)/c
+.)l
+.pp
+If there are two operators in the subexpression having  the  same
+highest  precedence,  the ambiguity must be resolved from the \fItypes\fP of
+the operators.  The possible types for an infix operator are
+.(l
+xfx     xfy     yfx
+.)l
+With an operator of type `xfx', it is a requirement that both  of  the
+two  subexpressions which are the arguments of the operator must be of
+LOWER precedence  than  the  operator  itself,  i.e.   their  principal
+functors  must  be  of  lower  precedence, unless the subexpression is
+explicitly  bracketed  (which  gives  it  zero  precedence).  With  an
+operator of type `xfy', only the first or left-hand subexpression must
+be of lower precedence;  the second can be of the \fIsame\fP  precedence  as
+the main operator;  and vice versa for an operator of type `yfx'.
+.pp
+For example, if the operators `+' and `-' both  have  type  `yfx'
+and are of the same precedence, then the expression
+.(l
+a-b+c
+.)l
+is valid, and means
+.(l
+(a-b)+c     i.e.  +(-(a,b),c)
+.)l
+Note that the expression would be invalid if the  operators  had  type
+\&`xfx', and would mean
+.(l
+a-(b+c)     i.e.  -(a,+(b,c))
+.)l
+if the types were both `xfy'.
+.pp
+The possible types for a prefix operator are
+.(l
+fx        fy
+.)l
+and for a postfix operator they are
+.(l
+xf        yf
+.)l
+The meaning of the types should be clear by  analogy  with  those  for
+infix  operators.   As  an example, if `not' were declared as a prefix
+operator of type `fy', then
+.(l
+not not P
+.)l
+would be a permissible way to write \*(lqnot(not(P))\*(rq. If  the  type  were
+\&`fx', the preceding expression would not be legal, although
+.(l
+not P
+.)l
+would still be a permissible form for \*(lqnot(P)\*(rq.
+.pp
+In C-Prolog, a functor named \fIname\fP is  declared  as  an
+operator of type \fItype\fP and precedence \fIprecedence\fP by calling
+the evaluable predicate \fBop\fP:
+.(l
+| ?- op(\fIprecedence\fP,\fItype\fP,\fIname\fP).
+.)l
+The argument \fIname\fP can also be a list of names of operators of the same
+type and precedence.
+.pp
+It is possible to have more than one operator of the  same  name,
+so long as they are of different kinds, i.e.  infix, prefix or postfix.
+An operator of any kind may be redefined by a new declaration  of  the
+same  kind.   This  applies equally to operators which are provided as
+\fIstandard\fP in C-Prolog, namely:
+.(l
+.TS
+r r r l.
+:- op(	1200,	xfx,	[ :-, --> ]).
+:- op(	1200,	fx,	[ :-, ?- ]).
+:- op(	1100,	xfy,	[ ; ]).
+:- op(	1050,	xfy,	[ -> ]).
+:- op(	1000,	xfy,	[ ',' ]).   /* See note below */
+:- op(	900,	fy,	[ not, \e+, spy, nospy ]).
+:- op(	700,	xfx,	[ =, is, =.., ==, \e==, @<, @>, @=<, @>=,
+\&	\&	\&	  =:=, =\e=, <, >, =<, >= ]).
+:- op(	500,	yfx,	[ +, -, /\e, \e/ ]).
+:- op(	500,	fx,	[ +, - ]).
+:- op(	400,	yfx,	[ *, /, //, <<, >> ]).
+:- op(	300,	xfx,	[ mod ]).
+:- op(	200,	xfy,	[ ^ ]).
+.TE
+.)l
+.pp
+Operator declarations are most usefuly placed in directives at the top
+of your program files. In this case the directive should be a command as
+shown above. Another common method of organisation is to have one file
+just containing commands to declare all the necessary operators. This file
+is then always consulted first.
+.pp
+Note that a comma written literally as  a  punctuation  character
+can be used as though it were an infix operator of precedence 1000 and
+type `xfy':
+.(l
+X,Y    ','(X,Y)
+.)l
+represent the same compound term.  But note that a comma written as  a
+quoted atom is \fInot\fP a standard operator.
+.pp
+Note also that the  arguments  of  a  compound  term  written  in
+standard  syntax must be expressions of precedence \fIbelow\fP 1000. Thus it
+is necessary to bracket the expression \*(lqP:-Q\*(rq in
+.(l
+assert((P:-Q))
+.)l
+The following syntax restrictions serve  to
+remove potential ambiguity associated with prefix operators.
+.ip -
+In a term written in standard syntax, the  principal  functor  and
+its  following  \*(lq(\*(rq  must  \fInot\fP be separated by any blankspace.  Thus
+.(l
+point (X,Y,Z)
+.)l
+is invalid syntax.
+.ip -
+If the argument of a prefix operator starts with a \*(lq(\*(rq,  this  \*(lq(\*(rq
+must  be  separated  from  the operator by at least one space or other
+non-printable character.  Thus
+.(l
+:-(p;q),r.
+.)l
+(where `:-' is the prefix operator) is invalid syntax, and must be written as
+.(l
+:- (p;q),r.
+.)l
+.ip -
+If a prefix  operator  is  written  without  an  argument,  as  an
+ordinary  atom,  the  atom  is  treated  as  an expression of the same
+precedence as the prefix operator, and  must  therefore  be  bracketed
+where necessary.  Thus the brackets are necessary in
+.(l
+X = (?-)
+.)l
+.sh 2 "Syntax Errors"
+.pp
+Syntax  errors  are  detected  when reading.    Each   clause,
+directive  or  in  general  any term read-in by the evaluable predicate
+\fBread\fP that fails to comply with syntax requirements is displayed on the
+terminal  as  soon  as  it is read.  A mark indicates the point in the
+string of symbols where the parser has failed to continue  its analysis.
+For example, typing
+.(l
+member(X,X L).
+.)l
+gives:
+.(l
+***syntax error***
+member(X,X
+***here***
+ L).
+.)l
+.pp
+Syntax errors do not disrupt the (re)consulting of a file in any way
+except that the clause or command
+with the syntax error will be ignored\**
+.(f
+\**After all, it could not
+be read.
+.)f
+All the other clauses in the file will have been read-in
+properly.
+If the syntax error occurs at top level then you should just retype the
+question.
+Given that Prolog has a very simple syntax it is usually quite
+straightforward 
+to see what the problems is (look for missing brackets in particular).
+The book \fIProgramming in Prolog\fP gives
+further examples.
+.sh 2 "Using a Terminal without Lower-Case"
+.pp
+The syntax of Prolog assumes that a full ASCII character
+set  is available.  With this \fIfull character set\fP or `LC' convention,
+variables are (normally) distinguished by an initial  capital  letter,
+while  atoms  and  other  functors must start with a lower-case letter
+(unless enclosed in single quotes).
+.pp
+When lower-case is not available, the \fIno lower-case\fP  or  `NOLC'
+convention has to be adopted.  With this convention, variables must be
+distinguished by an initial underline character \*(lq\(ul\*(rq, and the names  of
+atoms  and other functors, which now have to be written in upper-case,
+are implicitly translated into lower-case (unless enclosed  in  single
+quotes). For example,
+.(l
+\(ulVALUE2
+.)l
+is a variable, while
+.(l
+VALUE2
+.)l
+is `NOLC' convention notation for the atom which is identical to:
+.(l
+value2
+.)l
+written in the `LC' convention.
+.pp
+The default convention is `LC'. To switch to the no  lower-case
+convention, call the evaluable predicate `NOLC':
+.(l
+| ?- 'NOLC'.
+.)l
+To switch back to  the  full  character  set  convention,  call  the
+evaluable predicate `LC':
+.(l
+| ?- 'LC'.
+.)l
+.pp
+Note that the names of these two procedures consist of upper-case
+letters  (so  that  they  can  be  referred  to  on  all devices), and
+therefore the names must \fIalways\fP be enclosed in single quotes.
+.pp
+It is recommended that the `NOLC' convention only be used in emergencies,
+since the standard syntax is far easier to use and
+is also easier
+for other people to read.
+.sh 1 "The Meaning of Prolog Programs"
+.sh 2 "Programs"
+.pp
+A fundamental unit of a logic program is the \fIliteral\fP, for instance
+.(l
+gives(tom,apple,teacher)   reverse([1,2,3],L)   X<Y
+.)l
+A literal is merely a term distinguished by the  context
+in which it appears in the program.  The (principal) functor of a literal is
+called a \fIpredicate\fP.    It  corresponds  roughly  to  a verb in natural
+language, or to a procedure name in a conventional programming language.
+.pp
+A logic \fIprogram\fP consists simply of a sequence of statements  called
+\fIclauses\fP, which  are  analogous to sentences of natural language.  A
+clause comprises a \fIhead\fP and a \fIbody\fP.  The head either consists of
+a single literal or is empty.    The body  consists of a sequence of zero or
+more literal (that is, it too may be empty). The body literals are called
+\fIgoals\fP or \fIprocedure calls\fP.
+.pp
+A clause with empty head is a \fInegative clause\fP or \fIquery\fP, and
+represents a command to the interpreter to start proving the goals in its
+body. The form of a query is
+.(l
+:- \fIP,Q,R\fP.
+.)l
+but, as described in Section 1.5, the \*(lq:-\*(rq can be omitted when typing
+a command to the interpreter.
+.pp
+From here on, when we use the term \*(lqclause\*(rq we mean a \fIpositive\fP
+clause, that is one with nonempty head.
+.pp
+If the body of a clause is empty, the clause is called a \fIunit\fP clause,
+and  is written in the form
+.(l
+\fIP\fP.
+.)l
+where \fIP\fP is the head literal.  We interpret this declaratively as
+.(l
+\*(lq\fIP\fP is true.\*(rq
+.)l
+and procedurally as 
+.(l
+\*(lq\fIP\fP can be satisfied.\*(rq
+.)l
+If  the  body of a clause is nonempty, the clause is called a \fInonunit
+clause\fP, and is written in the form
+.(l
+\fIP\fP :- \fIQ\fP, \fIR\fP, \fIS\fP.
+.)l
+where \fIP\fP is the head and \fIQ\fP, \fIR\fP and \fIS\fP are the goals
+which make up  the  body.
+We can read such a clause either declaratively as
+.(l F
+\*(lq\fIP\fP is true if \fIQ\fP and \fIR\fP and \fIS\fP are true.\*(rq
+.)l
+or procedurally as
+.(l F
+\*(lqTo satisfy goal \fIP\fP, satisfy goals \fIQ\fP, \fIR\fP and \fIS\fP.\*(rq
+.)l
+.pp
+Clauses in  general  contain  variables.    Note  that  variables in
+different clauses are completely independent, even if they have the same
+name  \*- the  \fIlexical  scope\fP  of  a  variable  is  limited to a single
+clause.  Each distinct variable in a clause  should  be  interpreted  as
+standing  for  an arbitrary  entity,  or  value.    To illustrate this, here
+are some examples of clauses  containing  variables,  with  possible
+declarative  and  procedural readings:
+.ip 
+employed(X) :- employs(Y,X).
+.(l
+\*(lqAny X is employed if any Y employs X.\*(rq
+
+\*(lqTo find whether a person X is employed,
+find whether any Y employs X.\*(rq
+.)l
+.ip
+derivative(X,X,1).
+.(l
+\*(lqFor any X, the derivative of X with respect to X is 1.\*(rq
+
+\*(lqThe goal of finding a derivative for the expression X with
+respect to X itself is satisfied by the result 1.\*(rq
+.)l
+.ip
+:- ungulate(X), aquatic(X).
+.(l
+\*(lqIs it true, for any X, that X is an ungulate and X is
+aquatic?\*(rq
+
+\*(lqFind an X which is both an ungulate and aquatic.\*(rq
+.)l 
+.pp
+In  a  program, the
+\fIprocedure\fP for a particular predicate is the sequence of clauses in the
+program whose  head  goals  have  that  predicate as principal functor.  For
+example, the procedure for a 3-ary predicate \fBconcatenate\fP might consist
+of the two clauses
+.(l
+concatenate([X|L1],L2,[X|L3]) :-
+    concatenate(L1,L2,L3).
+concatenate([],L,L).
+.)l
+where \fBconcatenate\fP(L1,L2,L3) means \*(lqthe list L1
+concatenated with the list L2 is the list L3\*(rq.  
+.pp
+In Prolog, several
+predicates may have the same  name but  different arities.  Therefore,  when
+it is important to specify a predicate unambiguously, the form <name>/<arity>
+is used, for example \fBconcatenate\fP/3.  
+.pp
+Certain predicates are
+predefined by procedures supplied by the Prolog system. Such predicates are
+called \fIevaluable predicates\fP.  
+.pp
+As we have seen, the goals in the body
+of a clause are linked by the operator `,'  which  can  be  interpreted  as
+conjunction (\*(lqand\*(rq).    It  is sometimes convenient to use an additional
+operator `;', standing for disjunction  (\*(lqor\*(rq) (The precedence of `;' is such
+that it dominates `,' but is dominated by `:-'.). An example is the clause.
+.(l
+grandfather(X,Z) :- (mother(X,Y); father(X,Y)), father(Y,Z).  
+.)l
+ which can be
+read as
+.(l
+\*(lqFor any X, Y and Z, X has Z as a grandfather if either the mother
+of X is Y or the father of X is Y, and the father of Y is Z.\*(rq 
+.)l
+Such  uses  of  disjunction  can  always  be  eliminated  by  defining an
+extra predicate - for instance the previous example is equivalent to
+.(l
+grandfather(X,Z) :- parent(X,Y), father(Y,Z).
+parent(X,Y) :- mother(X,Y).
+parent(X,Y) :- father(X,Y).
+.)l
+and so disjunction will not be  mentioned  further  in  the  following,  more
+formal, description of the semantics of clauses.
+.sh 2 "Declarative and Procedural Semantics"
+.pp
+The  semantics  of  definite  clauses  should be fairly clear from the informal
+interpretations already given.    However  it  is  useful  to  have  a  precise
+definition.  The \fIdeclarativesemantics\fP of definite clauses tells us which goals
+can be considered true according to a given program, and is defined recursively
+as follows.  
+.(l F
+A  goal  is  \fItrue\fP if it is the head of some clause instance and each of
+the goals (if any) in the body of that clause \fIinstance\fP is  true,  where
+an instance of a clause (or term) is obtained by substituting, for each
+of zero or more of its variables, a new term for all occurrences of the
+variable.  
+.)l
+For  example,  if  a  program contains the preceding procedure for
+\fBconcatenate\fP,
+then the declarative semantics tells us that 
+.(l
+concatenate([a],[b],[a,b])
+.)l
+is true, because this goal is the head of  a  certain  instance  of  the  first
+clause for \fBconcatenate\fP, namely,
+.(l
+concatenate([a],[b],[a,b]) :- concatenate([],[b],[b]).
+.)l
+and  we  know  that  the only goal in the body of this clause instance is true,
+since it is an instance of the unit clause  which  is  the  second  clause  for
+\fBconcatenate\fP.
+.pp
+The  declarative  semantics makes no reference to the sequencing of
+goals within the body of a clause, nor to the sequencing of  clauses  within  a
+program.    This  sequencing  information  is,  however,  very relevant for the
+\fIprocedural semantics\fP which Prolog gives to definite clauses.    The  procedural
+semantics  defines  exactly  how the Prolog system will execute a goal, and the
+sequencing information is the means by which the Prolog programmer directs  the
+system  to  execute  his  program in a sensible way.  The effect of executing a
+goal is to enumerate, one by one, its true instances.  Here then is an informal
+definition of the procedural semantics.
+.(l F
+To execute a goal, the system searches forwards from the  beginning  of
+the program for the first clause whose head \fImatches\fP or \fIunifies\fP with the
+goal.    The unification process finds the most general
+common instance of the two terms, which is unique if it exists.   If  a
+match  is  found,  the  matching  clause  instance is then activated by
+executing in turn, from left to right, each of the goals  (if  any)  in
+its  body.  If at any time the system fails to find a match for a goal,
+it \fIbacktracks\fP, that is it rejects the  most  recently  activated  clause,
+undoing  any  substitutions  made  by  the  match  with the head of the
+clause.  Next it reconsiders the  original  goal  which  activated  the
+rejected  clause,  and  tries  to  find  a subsequent clause which also
+matches the goal.
+.)l
+For example, if we execute the goal in the query
+.(l
+:- concatenate(X,Y,[a,b]).
+.)l
+we  find  that  it matches the head of the first clause for \fBconcatenate\fP, with X
+instantiated to [a|X1]. The new variable X1 is  constrained  by  the  new  goal
+produced, which is the recursive procedure call 
+.(l
+concatenate(X1,Y,[b])
+.)l
+Again  this  goal  matches  the  first  clause, instantiating X1 to [b|X2], and
+yielding the new goal 
+.(l
+concatenate(X2,Y,[])
+.)l
+Now this goal will only match the second clause, instantiating both X2 and Y to
+[]. Since there are no further goals to be executed, we have a solution 
+.(l
+X = [a,b]
+Y = []
+.)l
+representing  a true instance of the original goal
+.(l
+concatenate([a,b],[],[a,b])
+.)l
+If this solution is rejected, backtracking will generate the further
+solutions
+.(l
+X = [a]
+Y = [b]
+
+X = []
+Y = [a,b]
+.)l
+in that order, by rematching, against the second clause for \fBconcatenate\fP, goals
+already solved once using the first clause.
+.sh 2 "Occurs Check"
+.pp
+Prolog's unification does not have an  \fIoccurs  check\fP,  i.e.  when  unifying  a
+variable  against  a term the system does not check whether the variable occurs
+in the term.  When the variable occurs in the term,  unification  should  fail,
+but  the  absence of the check means that the unification succeeds, producing a
+\fIcircular term\fP.  Trying to print a circular  term,  or  trying  to  unify  two
+circular  terms,  will cause an infinite loop and possibly make Prolog
+run out of stack space.
+.pp
+The absence of the occur check  is  not  a  bug  or  design  oversight,  but  a
+conscious  design  decision.   The reason for this decision is that unification
+with the occur check is at best linear on the sum of the  sizes  of  the  terms
+being  unified,  whereas  unification  without the occur check is linear on the
+size of the smallest of the terms being unified.  In any practical  programming
+language,  basic operations are supposed to take constant time.
+Unification  against a variable should be thought of as the basic
+operation of Prolog, but this can take constant time only if the occur check is
+omitted.   Thus the absence of a occur check is essential to make Prolog into a
+practical programming language.  The inconvenience caused by  this  restriction
+seems  in practice to be very slight.  Usually, the restriction is only felt in
+toy programs.
+.sh 2 "The Cut Symbol"
+.pp
+Besides the sequencing of goals and clauses, Prolog  provides  one  other  very
+important facility for specifying control information.  This is the \fIcut\fP symbol,
+written  \*(lq!\*(rq.  It is inserted in the program just like a goal, but is not to be
+regarded as part of the logic of the program and should be ignored  as  far  as
+the declarative semantics is concerned.
+.pp
+The  effect of the cut symbol is as follows.  When first encountered as a goal,
+cut succeeds immediately.  If backtracking should later return to the cut,  the
+effect  is to fail the \fIparent goal\fP, the goal which matched the head of
+the clause containing the cut, and caused the clause to be activated.  In other
+words, the cut operation commits the system  to  all  choices  made  since  the
+parent  goal  was  invoked, and causes other alternatives to be discarded.  The
+goals thus rendered  \fIdeterminate\fP  are  the  parent  goal  itself,  any  goals
+occurring  before  the  cut  in the clause containing the cut, and any subgoals
+which were executed during the execution of those preceding goals.
+.pp
+For example, the procedure
+.(l
+member(X,[X|L]).
+member(X,[Y|L]) :- member(X,L).
+.)l
+can be used to test whether a given term is in a list, and the goal
+.(l
+:- member(b,[a,b,c]).
+.)l
+will succeed.
+The procedure can also be used to  extract  elements
+from a list, as in 
+.(l
+:- member(X,[d,e,f]).
+.)l
+With  backtracking this will successively return each element of the list.  Now
+suppose that the first clause had been written instead:  
+.(l
+member(X,[X|L]) :- !.
+.)l
+In this case, the above call would extract only the first element of  the  list
+(`d').  On backtracking, the cut would immediately fail the whole procedure.
+.pp
+A procedure of the form
+.(l
+\fIx\fP :- \fIp\fP, !, \fIq\fP.
+\fIx\fP :- \fIr\fP.
+.)l
+is similar to 
+.(l
+\fIx\fP := if \fIp\fP then \fIq\fP else \fIr\fP;
+.)l
+in an Algol-like language.
+.pp
+A cut discards all the alternatives since the parent
+goal, even when the cut appears within a disjunction.    This  means  that  the
+normal  method  for  eliminating  a  disjunction by defining an extra predicate
+cannot be applied to a disjunction containing a cut.
+.sh 1 "Debugging Facilities"
+.pp
+This section  describes  the  debugging  facilities  that are available
+in C-Prolog.  The purpose of these facilities is to provide
+information concerning  the  control  flow  of  your  program.    The  main
+features of the debugging package are as follows:
+.ip -
+The \fIProcedure box\fP
+model of Prolog execution which provides  a  simple way  of  visualising
+control  flow,  especially during backtracking.  Control flow is viewed at
+the procedure level,  rather  than  at  the level of individual clauses.
+.ip -
+The  ability to exhaustively trace your program or to selectively set
+\fIspy points\fP.  Spy points allow you to nominate interesting  procedures at
+which the program is to pause so that you can interact.
+.ip -
+The  wide  choice of control and information options available during
+debugging.
+.pp
+Much of the information in this chapter is similar
+but not identical to that of Chapter 8 of \fIProgramming in Prolog\fP.
+.sh 2 "The Procedure Box Control Flow Model"
+.pp
+During  debugging  the  interpreter  prints  out a sequence of goals in
+various states of instantiation in order to show the state the program has
+reached  in its  execution.    However,  in  order  to  understand  what is
+occurring it is necessary to understand when and why the interpreter prints
+out goals.   As  in other  programming  languages,  key  points of interest
+are procedure entry and return, but in Prolog there is the additional
+complexity of backtracking.   One of  the  major  confusions  that  novice
+Prolog programmers have to face is the question of what actually happens when
+a goal fails  and  the  system  suddenly starts backtracking.  The Procedure
+Box model of Prolog execution views program control  flow in terms of
+movement about the program text.  This model provides a basis for the
+debugging mechanism in the interpreter, and enables the user to view the
+behaviour of his program in a consistent way.
+.pp
+Let us look at an example Prolog procedure:
+.(b
+             *--------------------------------------*
+     Call    |                                      |    Exit
+  ---------> +  descendant(X,Y) :- of\&fspring(X,Y).  + --------->
+             |                                      |
+             |  descendant(X,Z) :-                  |
+  <--------- +     of\&fspring(X,Y), descendant(Y,Z). + <---------
+     Fail    |                                      |    BackTo
+             *--------------------------------------*
+.)b
+The  first clause states that Y is a descendant of X if Y is an offspring of
+X, and the second clause states that Z is a descendant of X if Y is  an
+offspring of  X and if Z is a descendant of Y. In the diagram a box has been
+drawn around the whole procedure and labelled arrows indicate the control
+flow in and out of this box.  There are four such arrows which we shall look
+at in turn.
+.lp
+Call
+.ip
+This arrow represents initial invocation of the procedure.  When  a
+\fBdescendant\fP goal  of  the  form  \fBdescendant\fP(X,Y)  is  required to
+be satisfied, control passes through the Call \fIport\fP of the
+\fBdescendant\fP box with the intention of matching a component clause and
+then  satisfying  any subgoals  in  the body  of  that  clause.    Notice
+that  this is independent of whether such a match is possible, that is first
+the box is called, and then the attempt to match takes place.  Textually we
+can imagine moving to the code for \fBdescendant\fP when meeting  a  call to
+\fBdescendant\fP in some other part of the code.
+.lp
+Exit
+.ip
+This arrow represents a successful return from the procedure.  This
+occurs  when  the  initial  goal  has  been unified with one of the component
+clauses and any subgoals have been  satisfied.    Control now  passes  out of
+the Exit port of the \fBdescendant\fP box.  Textually we stop following the
+code for \fBdescendant\fP and go back to the  place we came from.
+.lp
+BackTo
+.ip
+This arrow indicates that a subsequent goal has failed and that the system
+has come back to this goal in  an  attempt  to match the goal against another
+clause.  Control passes through the BackTo  port  of  the \fBdescendant\fP
+box in an attempt to rematch the original goal with an alternative  clause
+and  then  try  to  satisfy  any subgoals  in  the body of this new clause.
+Textually we follow the code backwards  up  the  way  we came  looking  for
+new  ways  of succeeding,  possibly  dropping  down  on to  another  clause
+and following that if necessary. Note that this is somewhat less informative
+than the Redo port described in \fIProgramming in Prolog\fP, because it does not
+show the path in the program from a failed goal back to the first goal where
+alternative clauses exist, but only this goal.
+.lp
+Fail
+.ip
+This arrow represents
+a failure of the initial  goal,  which  might occur  if no clause is matched,
+or if subgoals are never satisfied, or if any solution produced is always
+rejected by later processing.  Control now passes out of the Fail port of the
+\fBdescendant\fP  box  and the  system  continues to backtrack.  Textually we
+move back to the code which called this procedure and keep moving backwards
+up  the code looking for choice points.
+.pp
+In  terms of this model, the
+information we get about the procedure box is only the control flow through
+these four ports.  This means that at  this level  we are  not  concerned
+with  which  clause  matches,  and  how  any subgoals are satisfied, but
+rather we only wish to know  the  initial  goal and  the final outcome.
+However,  it  can  be  seen  that whenever we are trying to satisfy subgoals,
+what we are actually doing is passing  through the  ports of  \fItheir\fP
+respective  boxes.    If  we  were  to follow this, then we would have
+complete information about the control flow inside the procedure box.
+
+Note that the box we have drawn round the procedure should really be seen as
+an \fIinvocation box\fP.  That is, there will be a  different  box  for  each
+different invocation  of  the  procedure.    Obviously,  with  something like
+a recursive procedure,  there  will  be many different Calls and Exits in the
+control flow, but these will be for different invocations.  Since this  might
+get  confusing each invocation box is given a unique integer identifier.
+.sh 2 "Basic Debugging Predicates"
+.pp
+The  interpreter  provides  a  range of evaluable predicates for control of
+the debugging facilities.  The most basic predicates are as follows:
+.lp
+\fBdebug\fP
+.ip
+Switches \fIdebug mode\fP on.  (It is initially off.)  In order  for  the
+full  range  of  control  flow  information  to  be available it is necessary
+to have this on from the start.    When  it  is  off  the system  does  not
+remember  invocations  that  are being executed.  (This is because it  is
+expensive  and  not  required  for  normal running  of  programs.)  You can
+switch debug mode on in the middle of execution, either from within your
+program or after  an interrupt  (see \fBtrace\fP below),   but  information  prior
+to  this  will  just  be unavailable.
+.lp
+\fBnodebug\fP
+.ip
+switches debug mode off.  If there are any spy points set then they
+will be removed.
+.lp
+\fBdebugging\fP
+.ip
+prints onto the terminal information about  the  current  debugging
+state.   It shows whether debug mode is on or off and gives various
+other information to be described later.
+.sh 2 "Tracing"
+.pp
+The following evaluable predicate may be used to commence an  exhaustive
+trace of a program.
+.lp
+\fBtrace\fP
+.ip
+Switches  debug  mode on, if it is not on already, and ensures that
+the next time control enters a procedure box,  a  message  will  be
+produced  and  you  will be asked to interact.
+.pp
+When stopped at a goal being traced,
+you have a number of options which will be detailed later.
+In particular, you can just type  \s-2END-OF-LINE\s0  (carriage-return)  to  creep  (or
+single-step)  into  your  program. If you continue to creep through your
+program you will see every entry and exit to/from every invocation box.
+However,  you will  notice  that  you  are only given the opportunity to
+interact on Call and BackTo ports, i.e. a single creep decision may  take  you
+through  several  Exit ports  or  several  Fail  ports.    Normally  this is
+desirable, as it would be tedious to go through all those ports step by step.
+However, if it is not what you want, the following evaluable predicate gives
+full control over  the  ports at which you are prompted.
+.lp
+\fBleash\fP(\fIMode\fP) 
+.ip
+Sets the \fIleashing mode\fP to \fIMode\fP, where
+\fIMode\fP can be one of the following
+.(l
+.TS
+l l.
+full	prompt on Call, Exit, BackTo and Fail
+tight	prompt on Call, BackTo and Fail
+half	prompt on Call and BackTo
+loose	prompt on Call
+off	never prompt
+.TE
+.)l
+or any other combination of ports as described later.
+The  initial  \fIleashing mode\fP is `half'.
+.sh 2 "Spy Points"
+.pp
+For programs of any size, it is clearly impractical to creep through the
+entire program.  Spy points make it possible to stop the program whenever it
+gets to a particular procedure which is of interest.  Once there,  one  can
+set  further spy points  in  order  to  catch  the control flow a bit further
+on, or one can start creeping.
+.pp
+Setting a spy-point on a procedure indicates that you wish to see  all
+control flow  through  the  various ports of its invocation boxes.  When
+control passes through any port of a procedure with a spy-point set on it, a
+message is output and the user is asked to interact.  Note that the current
+mode of leashing does not affect spy points: user interaction is requested on
+\fIevery\fP port.
+.pp
+Spy points are set and removed by the following evaluable predicates which
+are also standard operators:
+.lp
+\fBspy\fP \fIX\fP
+.ip
+Sets  spy points  on  all the procedures given by \fIX\fP.  \fIX\fP is either a
+single predicate specification, or a list of  such  specifications.
+A  predicate  specification  is  either of the form <atom>/<arity>,
+which means the procedure with the name  <atom>  and  an  arity  of
+<arity>  (for example  member/2,  foo/0,  hello/27),  or it is of the form
+<atom>, which means all the procedures with the  name  <atom>  that
+currently  have clauses in the data-base (e.g. member, foo, hello).
+This latter form may refer to multiple procedures  which  have  the
+same  name  but  different arities.  If you use the form <atom> but
+there are no clauses for this predicate (of any arity) then nothing
+will be done.  If you really  want  to  place  a  spy  point  on  a
+currently  non-existent  procedure, then you must use the full form
+<atom>/<arity>; you will get a warning message in this  case.    If
+you  set  some  spy points  when  debug mode is off then it will be
+automatically switched on.
+.lp
+\fBnospy\fP \fIX\fP
+.ip
+This reverses the effect of spy \fIX\fP: all the procedures given by  \fIX\fP
+will have previously set spy points removed from them.
+.pp
+The  options  available when you arrive at a spy-point are described below.
+.sh 2 "Format of Debugging Messages"
+.pp
+We will now look at the exact format of the message output by the system at
+a port.  All trace messages are output to the terminal regardless  of  where
+the current  output is directed.  (This allows you to trace programs while
+they are performing file I/O.)  The basic format is as follows:
+.(l
+** (23) 6 Call : foo(hello,there,\(ul123) ?
+.)l
+The \*(lq**\*(rq indicates that this is a spy-point.    If  this  port  is  not  for
+a procedure  with  a  spy-point set, then there will be two spaces there
+instead.  If this port is the requested return from a  Skip  then  the
+second  character becomes \*(lq>\*(rq.  This gives four possible combinations:
+.(l
+.TS
+l lt.
+\*(lq**\*(rq	This is a spy-point.
+\*(lq*>\*(rq	T{
+This  is a spy-point, and you also did a Skip last time you were in
+this box.
+T}
+\*(lq >\*(rq	T{
+This is not a spy-point, but you did a Skip last time you  were  in
+this box.
+T}
+\*(lq  \*(rq	This is not a spy-point.
+.TE
+.)l
+.lp
+The  number  in  parentheses  is  the  unique  invocation  identifier.  This
+is continuously incrementing regardless of whether or not you are actually
+seeing the  invocations  (provided that debug mode is on).  This number can
+be used to cross correlate the trace messages for the various ports, since
+it  is  unique for  every  invocation.    It  will  also  give  an indication
+of the number of procedure calls made since the start of the execution.  The
+invocation  counter starts  again for every fresh execution of a command, and
+it is also reset when retries (see later) are performed.
+.pp
+The number following this is the current  depth, that is,  the  number  of
+direct ancestors this goal has.
+.pp
+The next word specifies the particular port (Call, Exit, BackTo or Fail).
+.pp
+The  goal  is  then  printed  so that you can inspect its current
+instantiation state.
+.pp
+The final \*(lq?\*(rq is the prompt indicating that you  should  type  in  one  of
+the option  codes allowed (see next section).  If this particular port is
+unleashed then you will obviously not get this prompt since you have
+specified  that  you do not wish to interact at this point.
+.pp
+Notice  that  not  all  procedure  calls  are  traced;  there  are  a few
+basic procedures which have been made invisible since it is more  convenient
+not  to see  them.    These include all primitive I/O evaluable predicates
+(for example \fBget\fP, \fBput\fP, \fBread\fP, \fBwrite\fP), all basic control
+structures (that is, `,', `;', `->')  and  all debugging  control  evaluable
+predicates (for instance, \fBdebug\fP, \fBspy\fP, \fBleash\fP, \fBtrace\fP).
+This means that you will never  see  messages  concerning  these  predicates
+during debugging.
+.sh 2 "Options Available during Debugging"
+.pp
+This  section  describes  the  particular  options  that are available when
+the system prompts you after printing out a debugging message.  All the
+options are one letter mnemonics.    They  are  read  from the terminal with
+any blanks being completely ignored up to the next end of line.
+The \fIcreep\fP option needs only the new line.
+
+The  only  option  which you really have to remember is \*(lqh\*(rq.  This provides
+help in the form of the following list of available options:
+.(l
+.TS
+l l l l.
+\s-2END-OF-LINE\s0	creep	a	abort
+c	creep	f	fail
+l	leap	b	break
+s	skip	h	help
+r	retry	r <n>	retry goal <n>
+q	quasi-skip	n	nodebug
+g	goal stack	[	read clauses from terminal
+e	exit Prolog
+.TE
+.)l
+The first three options are the basic control decisions:
+.lp
+\fBc\fP, \s-2END-OF-LINE\s0: Creep
+.ip
+Causes the interpreter to single-step to the very next port and print a
+message.    Then  if the port is leashed the user is
+prompted for further interaction.  Otherwise it continues creeping.  If
+leashing is off, creep is the same as leap (see below)  except  that  a
+complete trace is printed on the terminal.
+.lp
+\fBl\fP: Leap
+.ip
+causes  the  interpreter  to resume running your program, only stopping
+when a spy-point is reached (or when the program terminates).   Leaping
+can  thus  be  used  to  follow  the  execution  at a higher level than
+exhaustive tracing.  All you need to do is  to  set  spy points  on  an
+evenly  spread set of pertinent procedures, and then follow the control
+flow through these by leaping from one to the other.
+.lp
+\fBs\fP: Skip
+.ip
+Skip is only valid for Call and BackTo  ports.    It  skips  over  the  entire
+execution  of  the procedure.  That is, you will not see anything until
+control comes back to this procedure (at either the Exit  port  or  the
+Fail  port).    Skip  is  particularly  useful  while creeping since it
+guarantees that control will be returned after the  (possibly  complex)
+execution  within  the  box.    If you skip then no message at all will
+appear until control returns.  This includes calls to  procedures  with
+spy points set; they will be masked out during the skip.  There are two
+ways  of overriding this :  there is a Quasi-skip which does not ignore
+spy points, and the \*(lqt\*(rq option after an interrupt  will  disable  the
+masking.  Normally, however, this masking is just what is required!
+.lp
+\fBq\fP: Quasi-skip
+.ip
+Is  like Skip except that it does not mask out spy points.  If there is
+a spy-point within the execution of the goal then  control  returns  at
+this  point  and  any  action can be performed there.  The initial skip
+still guarantees an  eventual  return  of  control,  though,  when  the
+internal execution is finished.
+.lp
+\fBf\fP: Fail
+.ip
+Transfers to the Fail port of
+the current box.  This puts your execution in a position
+where it is about to  backtrack  out  of  the  current
+invocation, that is, you have manually failed the initial goal.
+.lp
+\fBr\fP: Retry
+.ip
+Transfers to the Call port of the current goal, or if given a numeric
+argument \fIn\fP, to the Call port of the invocation numbered \fIn\fP.
+IF the invocation being retried has been deleted by the cut control primitive,
+the most recent active invocation before it will be retried. If \fIn\fP
+is out of range, the current invocation is retried.
+This option is extremely useful to go back to an earlier state of
+computation if some point of interest was overshot in a debugging
+session. Note however that side effects, such as database modification,
+are not undone.
+.lp
+\fBg\fP: Goal Stack
+.ip
+Shows the goal that called the current one, and the one that called
+it, and so on, that is, the \fBstack\fP of pending goals. Goals
+are printed one per line, from the most recent to the least recent.
+Each goal is labeled by its recursion level \fIl\fP, its invocation
+number \fIi\fP and the ordinal position \fIp\fP of the clause currently
+used to solve the goal.
+.lp
+\fBa\fP: Abort
+.ip
+Causes  an  abort  of  the current execution.  All the execution states
+built so far are destroyed and you are put right back at the top  level
+of  the  interpreter.    (This  is  the same as the evaluable predicate
+\fBabort\fP.)
+.lp
+\fB[\fP: Read clauses from terminal
+.ip
+starts reading clauses typed by the user as if doing a \fIconsult(user)\fP.
+An \s-2END-OF-INPUT\s0 returns to the debugger.
+.lp
+\fBe\fP: Exit from Prolog
+.ip
+causes an irreversible exit from the Prolog system.
+(This is the same as the evaluable predicate \fBhalt\fP.)
+.lp
+\fBh\fP: Help
+.ip
+Displays the table of options given above.
+.lp
+\fBb\fP: Break
+.ip
+Calls  the  evaluable  predicate \fBbreak\fP, thus putting you at interpreter
+top level with the execution so far sitting underneath you.   When  you
+end  the  break with the \s-2END-OF-INPUT\s0 character,  you  will be reprompted at the port at which you
+broke.  The new execution is completely  separate  from  the  suspended
+one;  the  invocation numbers will start again from 1 during the break.
+Debug mode is not switched off as you call the break,  but  if  you  do
+switch  it off then it will be re-switched on when you finish the break
+and go back to the old execution.  However, any changes to the leashing
+or to spy points will remain in effect.
+.lp
+\fBn\fP:  Nodebug
+.ip
+Turns off debug mode.  Notice that this is the correct way to switch
+debugging  off at a trace point.  You cannot use the \*(lqb\*(rq option
+because it always restores debug mode upon return.
+.sh 2 "Reconsulting during Debugging"
+.pp
+It is possible, and sometimes useful, to reconsult a file whilst in the
+middle of  a  program  execution.  However this can lead to unexpected
+behaviour under the following circumstances: a procedure has been
+successfully executed; it  is subsequently   re-defined   by  a  reconsult,
+and  is  later  re-activated  by backtracking.  When the backtracking
+occurs,  all  the  new  clauses  for  the procedure appear to the interpreter
+to be potential alternative solutions, even though  identical  clauses  may
+already have been used.  Thus large amounts of (unwanted) activity takes
+place on backtracking.  The problem does not arise if you do the reconsult
+when you are at the Call  port  of  the  procedure  to  be re-defined.
+.sh 1 "Evaluable Predicates"
+.pp
+This section describes all the evaluable predicates available in
+C-Prolog.
+These predicates are provided in advance by the system and they cannot
+be redefined by the user.
+Any attempt to add clauses or delete clauses to an evaluable predicate
+fails with an error 
+message, and leaves the evaluable predicate unchanged.
+The C-Prolog provides a fairly wide range of evaluable predicates
+to perform the following tasks:
+.(l
+Input/Output
+   Reading-in programs
+   Opening and closing files
+   Reading and writing Prolog terms
+   Getting and putting characters
+Arithmetic
+Affecting the flow of the execution
+Classifying and operating on Prolog terms (meta-logical facilities)
+Sets
+Term Comparison
+Manipulating the Prolog program database
+Manipulating the additional indexed database
+Debugging facilities
+Environmental facilities
+.)l
+The evaluable predicates will be described according to this
+classification. Appendix I
+contains
+a complete list of the evaluable predicates.
+.sh 2 "Input and Output"
+.pp
+A total of 15 I/O streams may be open at any one time for input and
+output.  This includes a stream that is always available
+for input and output to the user's
+terminal.  A stream to a file \fIF\fP is opened for input by the first
+\fBsee\fP(\fIF\fP) executed.  \fIF\fP then becomes the current input stream.
+Similarly, a stream to file \fIH\fP is opened for output by the first
+\fBtell\fP(\fIH\fP) executed.  \fIH\fP then becomes the current output stream.
+Subsequent calls to \fBsee\fP(\fIF\fP) or to \fBtell\fP(\fIH\fP) make \fIF\fP or
+\fIH\fP the current input or output stream, respectively.  Any input or output
+is always to the current stream.
+.pp
+When no input or output stream has been specified,  the  standard
+ersatz  file  `user',  denoting  the  user's terminal, is utilised for
+both.
+When the terminal is
+waiting for input on a new line, a prompt will be displayed as follows:
+.(l
+.TS
+l l.
+\*(lq| ?- \*(rq	interpreter waiting for command
+\*(lq|    \*(rq	interpreter wating for command continuation line
+\*(lq| \*(rq	\fBconsult\fP(user) wating for continuation line
+\*(lq|:\*(rq	default for waiting for other user input
+.TE
+.)l
+When the current input (or output) stream is closed, the user's
+terminal becomes the current input (or output) stream.
+.pp
+The only file
+that can be simultaneously  open
+for input and output is the ersatz file `user'.
+.pp
+A file is referred to by its name, \fIwritten as an atom\fP, e.g.  
+.(l
+myfile
+\&'F123'
+data\(ullst
+\&'tom/greeks'
+.)l
+.pp
+All I/O errors normally cause an \fBabort\fP, except for  the  effect
+of the evaluable predicate \fBnofileerrors\fP decribed below.
+.pp
+End of file is signalled on the user's terminal 
+by typing the \s-2END-OF-INPUT\s0 character.
+Any  more  input requests for a file whose end has been reached causes
+an error failure.
+.sh 3 "Reading-in Programs"
+.lp
+\fBconsult\fP(\fIF\fP)
+.ip
+Instructs
+the interpreter to read-in the program which is
+in file \fIF\fP.  When  a directive is read it is immediately executed.  When
+a clause is read it is put after any clauses already read by the interpreter
+for that procedure.
+.lp
+\fBreconsult\fP(\fIF\fP)
+.ip
+Like  
+\fBconsult\fP  except  that  any  procedure  defined   in   the
+reconsulted  file erases any clauses for that procedure already
+present in the interpreter.
+\fBreconsult\fP makes it possible to amend a program
+without having to restart from scratch and consult all the files  which
+make  up  the  program.
+.lp
+\fB[\fP\fIFile\fP\fB|\fP\fIFiles\fP\fB]\fP
+.ip
+This 
+is a shorthand way of consulting or reconsulting a list of files.
+A file name may optionally be preceded by the operator `-' to
+indicate  that  the  file  should   be   reconsulted   rather   than
+consulted. Thus
+.(l
+| ?- [file1,-file2,file3].
+.)l
+is merely a shorthand for
+.(l
+| ?- consult(file1), reconsult(file2), consult(file3).
+.)l
+.sh 3 "File Handling"
+.lp
+\fBsee\fP(\fIF\fP)
+.ip
+File \fIF\fP becomes the current input stream.
+.lp
+\fBseeing\fP(\fIF\fP)
+.ip
+\fIF\fP
+is unified with the name of the current input file.
+.lp
+\fBseen\fP
+.ip
+Closes
+the current input stream.
+.lp
+\fBtell\fP(\fIF\fP)
+.ip
+File
+\fIF\fP becomes the current output stream.
+.lp
+\fBtelling\fP(\fIF\fP)
+.ip
+\fIF\fP
+is unified with the name of the current output file.
+.lp
+\fBtold\fP
+.ip
+Closes
+the current output stream.
+.lp
+\fBclose\fP(\fIF\fP)
+.ip
+File
+\fIF\fP, currently open for input or output, is closed.
+.lp
+\fBfileerrors\fP
+.ip
+Undoes
+the effect of \fBnofileerrors\fP.
+.lp
+\fBnofileerrors\fP
+.ip
+After
+a  call  to  this  predicate,  the  I/O  error  conditions
+\*(lqincorrect file name ...\*(rq, \*(lqcan't see file ...\*(rq, \*(lqcan't tell file
+\&...\*(rq and \*(lqend of file ...\*(rq cause a call to \fBfail\fP instead of  the
+default  action,  which is to type an error message and then call
+\fBabort\fP.
+.lp
+\fBexists\fP(\fIF\fP)
+.ip
+Succeeds
+if the file F exists.
+.lp
+\fBrename\fP(\fIF\fP,\fIN\fP)
+.ip
+If
+File \fIF\fP is renamed to \fIN\fP.
+If \fIN\fP  is `[]', the file is deleted.
+If \fIF\fP was a currently open stream, it is closed first.
+.sh 3 "Input and Output of Terms"
+.lp
+\fBread\fP(\fIX\fP)
+.ip
+The
+next term, delimited by a full stop (i.e.  a \*(lq.\*(rq followed  by a carriage-return
+or  a  space),  is  read  from the current input stream and
+unified with \fIX\fP. The syntax of the term must accord  with  current
+operator declarations.  If a call \fBread\fP(\fIX\fP) causes the end of the
+current input stream to be reached, \fIX\fP is unified  with  the  atom
+\&`end\(ulof\(ulfile'.  Further  calls  to \fBread\fP for the same stream will then
+cause an error failure.
+.lp
+\fBwrite\fP(\fIX\fP)
+.ip
+The
+term \fIX\fP is written to the current output stream  according  to
+operator declarations in force.
+.lp
+\fBdisplay\fP(\fIX\fP)
+.ip
+The
+term \fIX\fP is displayed on the terminal in standard parenthesised
+prefix notation.
+.lp
+\fBwriteq\fP(\fITerm\fP)
+.ip
+Similar
+to \fBwrite\fP(\fITerm\fP), but the names of atoms and functors
+are quoted where necessary to make the result acceptable as input to \fBread\fP.
+.lp
+\fBprint\fP(\fITerm\fP)
+.ip
+Print \fITerm\fP onto the current output.
+This predicate provides a handle for user defined pretty printing.
+If \fITerm\fP is a variable then it is written,
+using \fBwrite\fP(\fITerm\fP).
+If \fITerm\fP is non-variable then a call is made to
+the user defined procedure \fBportray\fP(\fITerm\fP).
+If this succeeds then it is assumed that \fITerm\fP has been output.
+Otherwise \fBprint\fP is equivalent to \fBwrite\fP.
+.sh 3 "Character Input/Output"
+.lp
+\fBnl\fP
+.ip
+A new line is started on the current output stream.
+.lp
+\fBget0\fP(\fIN\fP)
+.ip
+\fIN\fP
+is the ASCII code of the next character from the current  input
+stream. If the current input stream reaches its end of file,
+the ASCII character code for control-Z is returned and
+the stream closed.
+.lp
+\fBget\fP(\fIN\fP)
+.ip
+\fIN\fP
+is the ASCII code of the  next  non-blank  printable  character
+from the current input stream. It has the same behaviour as \fBget0\fP
+on end of file.
+.lp
+\fBskip\fP(\fIN\fP)
+.ip
+Skips
+to just past the next  ASCII  character  code  \fIN\fP  from  the
+current input stream.  \fIN\fP may be an integer expression.
+Skipping past the end of file causes an error.
+.lp
+\fBput\fP(\fIN\fP)
+.ip
+ASCII
+character code \fIN\fP is output to the current output stream.
+\fIN\fP may be an integer expression.  
+.lp
+\fBtab\fP(\fIN\fP)
+.ip
+\fIN\fP
+spaces are output to the current output stream.  \fIN\fP
+may  be  an  integer expression.
+.sh 2 "Arithmetic"
+.pp
+Arithmetic is performed by  evaluable predicates  which  take  as
+arguments   \fIarithmetic expressions\fP   and  \fIevaluate\fP  them.
+An  arithmetic expression is a term  built  from  \fIevaluable functors\fP,  
+numbers  and variables.
+At  the  time  of evaluation, each variable in an arithmetic
+expression must be bound to a number or
+to  an  arithmetic  expression.
+The result of evaluation will always be converted back to an integer
+if possible.
+.pp
+Each evaluable functor stands for an arithmetic  operation.
+The adjective \*(lqinteger\*(rq in the descriptions below means that
+the operation only makes sense for integers, and will fail
+for floating point numbers.
+.pp
+Because arithmetic expressions are compound terms, they use up storage
+that is only recovered on backtracking. The evaluable predicate
+\fBexpanded\(ulexprs\fP can be used to avoid this overhead
+by preexpanding arithmetic 
+expressions into calls to arithmetic evaluation predicates. However,
+this makes program read-in slower and clauses bigger. 
+.pp
+In general, an arithmetic operation that combines integers and
+floating point numbers will return a floating point number.
+However, if the result is integral, it is converted back to
+integer representation, and the same applies to numbers read in
+by the reader. Thus, the goal
+.(l
+| ?- p(2.0).
+.)l
+will succeed with the clause
+.(l
+p(2).
+.)l
+and the result of the query
+.(l
+| ?- X is 2*1.5.
+.)l
+is
+.(l
+X = 5
+.)l
+.pp
+Numbers may be integers
+.(l
+-33  0  9999
+.)l
+or floating point numbers
+.(l
+1.333  -2.6E+7 0.555E-2
+.)l
+.pp
+Note that the decimal \*(lq.\*(rq cannot be confused with the end of clause because
+the latter must be followed by blank space (space, tab or \s-2END-OF-LINE\s0).
+However, if an operator \*(lq.\*(rq is declared as infix, it will only be possible
+to apply it to two numbers if they are separated by blank space from
+the operator.
+.pp
+The
+evaluable  functors  are  as  follows,  where  \fIX\fP  and  \fIY\fP  are  
+arithmetic expressions.
+.RS
+.lp
+\fIX\fP+\fIY\fP
+.ip
+addition
+.lp
+\fIX\fP-\fIY\fP
+.ip
+subtraction
+.lp
+\fIX\fP*\fIY\fP
+.ip
+multiplication
+.lp
+\fIX\fP/\fIY\fP
+.ip
+division
+.lp
+\fIX\fP//\fIY\fP
+.ip
+integer division
+.lp
+\fIX\fP mod \fIY\fP
+.ip
+\fIX\fP (integer) modulo \fIY\fP
+.lp
+-\fIX\fP
+.ip
+unary minus
+.lp
+\fBexp\fP(\fIX\fP)
+.ip
+exponential function
+.lp
+\fBlog\fP(\fIX\fP)
+.ip
+natural logarithm
+.lp
+\fBlog10\fP(\fIX\fP)
+.ip
+base 10 logarithm
+.lp
+\fBsqrt\fP(\fIX\fP)
+.ip
+square root
+.lp
+\fBsin\fP(\fIX\fP)
+.ip
+sine
+.lp
+\fBcos\fP(\fIX\fP)
+.ip
+cosine
+.lp
+\fBtan\fP(\fIX\fP)
+.ip
+tangent
+.lp
+\fBasin\fP(\fIX\fP)
+.ip
+arc sine
+.lp
+\fBacos\fP(\fIX\fP)
+.ip
+arc cosine
+.lp
+\fBatan\fP(\fIX\fP)
+.ip
+arc tangent
+.lp
+\fBfloor\fP(\fIX\fP)
+.ip
+the largest integer not greater than \fIX\fP
+.lp
+\fIX\fP^\fIY\fP
+.ip
+\fIX\fP to the power \fIY\fP
+.lp
+\fIX\fP/\e\fIY\fP
+.ip
+integer bitwise conjunction
+.lp
+\fIX\fP\/\fIY\fP
+.ip
+integer bitwise disjunction
+.lp
+\fIX\fP<<\fIY\fP
+.ip
+integer bitwise left shift of \fIX\fP by \fIY\fP places
+.lp
+\fIX\fP>>\fIY\fP
+.ip
+integer bitwise right shift of \fIX\fP by \fIY\fP places
+.lp
+\e\fIX\fP
+.ip
+integer bitwise negation
+.lp
+\fBcputime\fP
+.ip
+CPU time since C-Prolog was started, in seconds.
+.lp
+\fBheapused\fP
+.ip
+Heap space in use, in bytes.
+.lp
+[\fIX\fP]
+.ip
+(a list of just one element)
+evaluates to \fIX\fP if \fIX\fP is an integer.
+Since a quoted string is just a list of integers, this allows a quoted
+character to be used in place of its ASCII code; e.g. \*(lqA\*(rq behaves within
+arithmetic expressions as the integer 65.
+.RE
+.pp
+The arithmetic evaluable predicates are as follows, where \fIX\fP and  
+\fIY\fP stand for arithmetic expressions, and \fIZ\fP for some term.
+Note that this means that \fBis\fP only evaluates one of its arguments
+as an arithmetic expression (the right-hand side one),
+whereas all the comparison
+predicates evaluate both their arguments.
+.lp
+\fIZ\fP \fBis\fP \fIX\fP
+.ip
+Arithmetic
+expression \fIX\fP is evaluated and the result,
+is unified with
+\fIZ\fP. Fails if \fIX\fP is not an arithmetic expression.
+.lp
+\fIX\fP \fB=:=\fP \fIY\fP
+.ip
+The
+values of \fIX\fP and \fIY\fP are equal.
+.lp
+\fIX\fP \fB=\=\fP \fIY\fP
+.ip
+The
+values of \fIX\fP and \fIY\fP are not equal.
+.lp
+\fIX\fP\fB < \fP\fIY\fP
+.ip
+The
+value of \fIX\fP is less than the value of \fIY\fP.
+.lp
+\fIX\fP\fB > \fP\fIY\fP
+.ip
+The
+value of \fIX\fP is greater than the value of \fIY\fP.
+.lp
+\fIX\fP\fB =<\fP \fIY\fP
+.ip
+The
+value of \fIX\fP is less than or equal to the value of \fIY\fP.
+.lp
+\fIX\fP\fB >=\fP \fIY\fP
+.ip
+The
+value of \fIX\fP is greater than or equal to the value of \fIY\fP.
+.lp
+\fBexpanded\(ulexprs\fP(\fIOld\fP,\fINew\fP)
+.ip
+Unifies \fIOld\fP to the current value of the expression expansion flag,
+and sets the value of the flag to \fINew\fP. The possible values of
+the flag are `off' (the default) for not expanding arithmetic expressions
+into procedure calls, and `on' to do the expansion.
+.sh 2 "Convenience"
+.lp
+\fIP\fP \fB,\fP \fIQ\fP
+.ip
+\fIP\fP
+and \fIQ\fP.
+.lp
+\fIP\fP \fB;\fP \fIQ\fP
+.ip
+\fIP\fP
+or \fIQ\fP.
+.lp
+\fBtrue\fP
+.ip
+Always
+succeeds.
+.lp
+\fIX\fP \fB=\fP \fIY\fP
+.ip
+Defined as if by the clause \*(lq Z=Z. \*(rq,
+that is \fIX\fP and \fIY\fP are unified.
+.sh 2 "Extra Control"
+.lp
+\fB!\fP
+.ip
+Cut (discard) all choice points made since
+the parent goal started execution.
+.lp
+\fB\\+\fP \fIP\fP
+.ip
+If
+the goal \fIP\fP has a solution, fail,  otherwise  succeed.   It  is
+defined as if by
+.(l
+\e+(P) :- P, !, fail.
+\e+(\(ul).
+.)l
+.lp
+\fIP\fP \fB->\fP \fIQ\fP \fB;\fP \fIR\fP
+.ip
+Analogous to
+.(l
+\*(lqif \fIP\fP then \fIQ\fP else \fIR\fP\*(rq
+.)l
+i.e.  defined as if by
+.(l
+P -> Q; R :- P, !, Q.
+P-> Q; R :- R.
+.)l
+.lp
+\fIP\fP \fB->\fP \fIQ\fP
+.ip
+When
+occurring other  than  as  one  of  the  alternatives  of  a
+disjunction, is equivalent to
+.(l
+\fIP\fP -> \fIQ\fP; fail.
+.)l
+.lp
+\fBrepeat\fP
+.ip
+Generates
+an  infinite  sequence  of  backtracking  choices.   It
+behaves as if defined by the clauses:
+.(l
+repeat.
+repeat :- repeat.
+.)l
+.lp
+\fBfail\fP
+.ip
+Always fails.
+.sh 2 "Meta-Logical"
+.lp
+\fBvar\fP(\fIX\fP)
+.ip
+Tests
+whether \fIX\fP is currently instantiated to a variable.
+.lp
+\fBnonvar\fP(\fIX\fP)
+.ip
+Tests
+whether \fIX\fP is currently instantiated to a non-variable term.
+.lp
+\fBatom\fP(\fIX\fP)
+.ip
+Checks
+that \fIX\fP is  currently  instantiated  to  an  atom  (i.e.   a
+non-variable term of arity 0, other than a number or database reference).
+.lp
+\fBnumber\fP(\fIX\fP)
+.ip
+Checks
+that \fIX\fP is currently instantiated to a number.
+.lp
+\fBinteger\fP(\fIX\fP)
+.ip
+Checks
+that \fIX\fP is currently instantiated to an integer.
+.lp
+\fBatomic\fP(\fIX\fP)
+.ip
+Checks
+that \fIX\fP is currently instantiated to an atom, number or database
+reference.
+.lp
+\fBprimitive\fP(\fIX\fP)
+.ip
+Checks
+that \fIX\fP is currently instantiated to a number or database
+reference.
+.lp
+\fBdb\(ulreference\fP(\fIX\fP)
+.ip
+Checks
+that \fIX\fP is currently instantiated to a database
+reference.
+.lp
+\fBfunctor\fP(\fIT\fP,\fIF\fP,\fIN\fP)
+.ip
+The
+principal functor of term \fIT\fP has name \fIF\fP and arity
+\fIN\fP,  where  \fIF\fP
+is  either  an  atom or, provided \fIN\fP is 0, a number.  
+Initially,
+either \fIT\fP must be instantiated to a non-variable, or \fIF\fP and 
+\fIN\fP  must
+be   instantiated   to,   respectively,  either  an  atom  and  a
+non-negative integer or an integer and 0. If these conditions are
+not satisfied, an error message is given.  In the case where \fIT\fP is
+initially instantiated to a variable, the result of the  call  is
+to  instantiate  \fIT\fP  to the most general term having the principal
+functor indicated.
+.lp
+\fBarg\fP(\fII\fP,\fIT\fP,\fIX\fP)
+.ip
+Initially,
+\fII\fP must be instantiated to a positive integer and
+\fIT\fP  to
+a  compound  term.  The result of the call is to unify \fIX\fP with the
+\fII\fPth argument of term  \fIT\fP.  (The  arguments  are  numbered
+from  1
+upwards.) If the initial conditions are not satisfied or \fII\fP is out
+of range, the call merely fails.
+.lp
+\fIX\fP \fB=..\fP \fIY\fP
+.ip
+\fIY\fP
+is a list whose head is the atom corresponding to the principal
+functor  of \fIX\fP and whose tail is the argument list of that functor
+in \fIX\fP. E.g.
+.(l
+product(0,N,N-1) =.. [product,0,N,N-1]
+
+N-1 =.. [-,N,1]
+
+product =.. [product]
+.)l
+If \fIX\fP is instantiated to a variable, then \fIY\fP must be instantiated
+either to a list of determinate length whose head is an atom, or to a list of
+length 1 whose head is a number.
+.lp
+\fBname\fP(\fIX\fP,\fIL\fP)
+.ip
+If
+\fIX\fP is an atom or a number then \fIL\fP is a list of the 
+ASCII codes of the characters comprising the name of \fIX\fP. E.g.
+.(l
+name(product,[112,114,111,100,117,99,116])
+.)l
+i.e.  name(product,"product")
+.(l
+name(1976,[49,57,55,54])
+
+name(hello,[104,101,108,108,111])
+
+name([],"[]")
+.)l
+If \fIX\fP is instantiated to a variable, \fIL\fP must be instantiated
+to a list of ASCII character codes.  E.g.
+.(l
+| ?- name(X,[104,101,108,108,111])).
+
+X = hello
+
+| ?- name(X,"hello").
+
+X = hello
+.)l
+.lp
+\fBcall\fP(\fIX\fP)
+.ip
+If
+\fIX\fP is instantiated to a term which would be acceptable as  body
+of  a  clause,  the goal \fBcall\fP(\fIX\fP) is executed exactly as if that
+term appeared textually in place of the \fBcall\fP(\fIX\fP), except that
+any  cut (\*(lq!\*(rq) occurring in \fIX\fP will remove only those choice points
+in \fIX\fP.
+If \fIX\fP is not  instantiated  as  
+described above, an error message is printed and \fBcall\fP fails.
+.lp
+\fIX\fP
+.ip
+(where
+\fIX\fP is a variable) Exactly the same as \fBcall\fP(\fIX\fP).
+.sh 2 "Sets"
+.pp
+When  there  are  many solutions to a problem, and when all those solutions are
+required  to  be  collected  together,  this  can  be  achieved  by  repeatedly
+backtracking  and gradually building up a list of the solutions.  The following
+evaluable predicates are provided to automate this process.
+.lp
+\fBsetof\fP(\fIX\fP,\fIP\fP,\fIS\fP)
+.RS
+.lp
+Read this as \*(lq\fIS\fP is the set of all instances of \fIX\fP  such  that
+\fIP\fP  is
+provable,  where  that  set  is non-empty\*(rq.  The term \fIP\fP
+specifies a
+goal or goals as in \fBcall\fP(\fIP\fP). 
+\fIS\fP is a set of terms represented as  a
+list  of those terms, without duplicates, in the standard order for
+terms (see Section 5.3).  If there are no instances of \fIX\fP such  that
+\fIP\fP is satisfied then the predicate fails.
+.lp
+The  variables  appearing  in the term \fIX\fP should not appear anywhere
+else in the clause except within the term \fIP\fP.  Obviously, the set to
+be enumerated should be finite, and should be enumerable by  Prolog
+in  finite  time.    It  is  possible for the provable instances to
+contain variables, but in this case the list \fIS\fP will only provide an
+imperfect representation of what is in reality an infinite set.
+.lp
+If there are uninstantiated variables in \fIP\fP which do not also appear
+in \fIX\fP, then a  call  to  this  evaluable  predicate  may  backtrack,
+generating  alternative  values  for  \fIS\fP  corresponding to different
+instantiations of the free variables of \fIP\fP.  (It  is  to  cater  for
+such  usage  that  the  set S is constrained to be non-empty.)  For
+example, the call:
+.(l
+| ?- setof(X, X likes Y, S).
+.)l
+might produce two alternative solutions via backtracking:
+.(l
+Y = beer,   S = [dick, harry, tom]
+Y = cider,  S = [bill, jan, tom ]
+.)l
+The call:
+.(l
+| ?- setof((Y,S), setof(X, X likes Y, S), SS).
+.)l
+would then produce:
+.(l
+SS = [ (beer,[dick,harry,tom]), (cider,[bill,jan,tom]) ]
+.)l
+.lp
+Variables occurring in \fIP\fP will not be treated as free  if  they  are
+explicitly  bound  within  \fIP\fP  by  an  existential  quantifier.   An
+existential quantification is written:
+.(l
+\fIY\fP^\fIQ\fP
+.)l
+meaning \*(lqthere exists a \fIY\fP such that \fIQ\fP is true\*(rq,
+where  \fIY\fP  is  some  Prolog variable.
+For example:
+.(l
+| ?- setof(X, Y^(X likes Y), S).
+.)l
+would produce the single result:
+.(l
+X = [bill, dick, harry, jan, tom]
+.)l
+in contrast to the earlier example.
+.RE
+.lp
+\fBbagof\fP(\fIX\fP,\fIP\fP,\fIBag\fP)
+.ip
+This  is  exactly  the  same  as  \fBsetof\fP  except  that  the list (or
+alternative lists) returned will not be ordered,  and  may  contain
+duplicates.   The effect of this relaxation is to save considerable
+time and space in execution.
+.lp
+\fIX\fP\fB^\fP\fIP\fP
+.ip
+The interpreter recognises this as meaning \*(lqthere exists an \fIX\fP  such
+that  \fIP\fP  is true\*(rq, and treats it as equivalent to \fBcall\fP(\fIP\fP).
+The use of this explicit existential
+quantifier outside the \fBsetof\fP and \fBbagof\fP
+constructs is superfluous.
+.sh 2 "Comparison of Terms"
+.pp
+These  evaluable  predicates  are  meta-logical.    They  treat  uninstantiated
+variables as objects  with  values  which  may  be  compared,  and  they  never
+instantiate those variables.  They should \fInot\fP be used when what you really want
+is arithmetic comparison (Section 5.2) or unification.
+.pp
+The  predicates  make reference to a standard total ordering of terms, which is
+as follows:
+.ip - 
+variables, in a standard order (roughly, oldest first - the order  is
+\fInot\fP related to the names of variables);
+.ip -
+Database references, roughly in order of age;
+.ip -
+numbers, from -\*(lqinfinity\*(rq to +\*(lqinfinity\*(rq;
+.ip -
+atoms, in alphabetical (i.e. ASCII) order;
+.ip -
+complex  terms, ordered first by arity, then by the name of principal
+functor, then by the arguments (in left-to-right order).
+.pp
+For example, here is a list of terms in the standard order:
+.(l
+[ X, -9, 1, fie, foe, fum, X = Y, fie(0,2), fie(1,1) ]
+.)l
+These are the basic predicates for comparison of arbitrary terms:
+.lp
+\fIX\fP \fB==\fP \fIY\fP
+.ip
+Tests if the terms currently instantiating \fIX\fP and  \fIY\fP
+are  literally
+identical  (in particular, variables in equivalent positions in the
+two terms must be identical).  For example, the question
+.(l
+| ?- X == Y.
+.)l
+fails (answers \*(lqno\*(rq) because \fIX\fP and \fIY\fP
+are  distinct  uninstantiated
+variables.  However, the question
+.(l
+| ?- X = Y, X == Y.
+.)l
+succeeds because the first goal unifies the two variables (see page 42).
+.lp
+\fIX\fP \fB\e==\fP \fIY\fP
+.ip
+Tests  if  the  terms  currently  instantiating  \fIX\fP  and  \fIY\fP  are 
+not literally identical.
+.lp
+\fIT1\fP \fB@<\fP \fIT2\fP
+.ip
+Term \fIT1\fP is before term \fIT2\fP in the standard order.
+.lp
+\fIT1\fP \fB@>\fP \fIT2\fP
+.ip
+Term \fIT1\fP is after term \fIT2\fP in the standard order.
+.lp
+\fIT1\fP \fB@=<\fP \fIT2\fP
+.ip
+Term \fIT1\fP is not after term \fIT2\fP in the standard order.
+.lp
+\fIT1\fP \fB@>=\fP \fIT2\fP
+.ip
+Term \fIT1\fP is not before term \fIT2\fP in the standard order.
+.pp
+Some further predicates involving comparison of terms are:
+.lp
+\fBcompare\fP(\fIOp\fP,\fIT1\fP,\fIT2\fP)
+.ip
+The  result  of comparing terms \fIT1\fP and \fIT2\fP is \fIOp\fP,
+where the possible
+values for \fIOp\fP are:
+.(l
+\&`='   if \fIT1\fP is identical to \fIT2\fP,
+
+\&`<'   if \fIT1\fP is before \fIT2\fP in the standard order,
+
+\&`>'   if \fIT1\fP is after \fIT2\fP in the standard order.
+.)l
+Thus \fBcompare\fP(=,\fIT1\fP,\fIT2\fP) is equivalent to
+\fIT1\fP \fB==\fP \fIT2\fP.
+.lp
+\fBsort\fP(\fIL1\fP,\fIL2\fP)
+.ip
+The elements of the list \fIL1\fP are sorted into the standard order, and
+any identical (i.e. `==') elements are merged,  yielding  the  list
+\fIL2\fP.  (The time taken to do this is at worst order (N log N) where N
+is the length of \fIL1\fP.)
+.lp
+\fBkeysort\fP(\fIL1\fP,\fIL2\fP)
+.ip
+The  list  \fIL1\fP  must
+consist of items of the form \fIKey\fP-\fIValue\fP.  These
+items are sorted into order according to the value of \fIKey\fP, yielding
+the list \fIL2\fP. No merging takes place. (The time taken to do this  is
+at worst order (N log N) where N is the length of L1.)
+.sh 2 "Modification of the Program"
+.pp
+The predicates defined in this section allow modification of the program
+as it is actually running.
+Clauses can be added to the program (\fIasserted\fP) or removed from the program
+(\fIretracted\fP).
+Some of the predicates make use of an implementation-defined identifier
+or \fIdatabase reference\fP
+which uniquely identifies every clause in the interpreted program.
+This identifier makes it possible to access clauses directly, instead of
+requiring a search through the program every time.
+However these facilities are intended for more complex use of the database and
+are not required (and undoubtedly should be avoided) by novice users.
+.lp
+\fBassert\fP(\fIC\fP)
+.ip
+The
+current instance of \fIC\fP is interpreted as a clause and is added
+to the program (with new private variables
+replacing any uninstantiated variables). The position of the  new
+clause  within the procedure concerned is implementation-defined.
+\fIC\fP must be instantiated to a non-variable.
+.lp
+\fBassert\fP(\fIClause\fP,\fIRef\fP)
+.ip
+Similar
+to \fBassert\fP(\fIClause\fP), but also
+unifies \fIRef\fP with the database reference
+of the clause asserted.
+.lp
+\fBasserta\fP(\fIC\fP)
+.ip
+Like
+\fBassert\fP(\fIC\fP), except that the new clause  becomes  the  \fIfirst\fP
+clause for the procedure concerned.
+.lp
+\fBasserta\fP(\fIClause\fP,\fIRef\fP)
+.ip
+Similar to
+\fBasserta\fP(\fIClause\fP), but also unifies \fIRef\fP with the database reference
+of the clause asserted.
+.lp
+\fBassertz\fP(\fIC\fP)
+.ip
+Like
+\fBassert\fP(\fIC\fP), except that the new  clause  becomes  the  \fIlast\fP
+clause for the procedure concerned.
+.lp
+\fBassertz\fP(\fIClause\fP,\fIRef\fP)
+.ip
+Similar to
+\fBassertz\fP(\fIClause\fP), but also unifies \fIRef\fP with the database reference
+of the clause asserted.
+.lp
+\fBclause\fP(\fIP\fP,\fIQ\fP)
+.ip
+\fIP\fP
+must  be  bound  to  a  non-variable  term,  and  the
+program is searched for a clause whose head matches \fIP\fP.
+The head and body of those clauses are unified with \fIP\fP and \fIQ\fP
+respectively.   If one of the clauses is a unit clause, \fIQ\fP will be
+unified with `true'.
+.lp
+\fBclause\fP(\fIHead\fP,\fIBody\fP,\fIRef\fP)
+.ip
+Similar
+to \fBclause\fP(\fIHead\fP,\fIBody\fP) but also unifies \fIRef\fP with the
+database reference of the clause
+concerned. If \fIRef\fP is not given at the time of the call,
+\fIHead\fP must be instantiated to a non-variable term. Thus this
+predicate can have two different modes of use, depending on whether the
+database reference of the clause is known or unknown.
+.lp
+\fBretract\fP(\fIC\fP)
+.ip
+The first clause in the
+program that matches \fIC\fP is erased.
+\fIC\fP must be initially instantiated to a non-variable.
+The predicate may be used in a non-determinate fashion,
+i.e. it  will successively retract clauses matching the argument through
+backtracking.
+.lp
+\fBabolish\fP(\fIN\fP,\fIA\fP)
+.RS
+Completely
+remove all clauses for the procedure with name \fIN\fP (which should be
+an atom), and arity \fIA\fP (which should be an integer).
+.lp
+The space
+occupied by retracted or abolished clauses will be recovered when
+instances of the clause are no longer in use.
+.lp
+See also \fBerase\fP (Section 5.10) which allows a clause to be
+directly erased via its database reference\**.
+.(f
+\**This is a lower level facility,
+required only for complicated database manipulations.
+.)f
+.RE
+.sh 2 "Information about the State of the Program"
+.lp
+\fBlisting\fP
+.ip
+Lists
+in the current output stream all the clauses in the
+program.
+.lp
+\fBlisting\fP(\fIA\fP)
+.ip
+The argument \fIA\fP may be a predicate specification of
+the form \fIName\fP/\fIArity\fP in which case only the clauses for the
+specified predicate are listed.
+If \fIA\fP is just an atom, then
+the interpreted procedures for all predicates of that name are listed
+as for \fBlisting\fP/0.
+Finally, it is possible for \fIA\fP to be a list
+of predicate specifications of either type, e.g.
+.(l
+| ?- listing([concatenate/3, reverse, go/0]).
+.)l
+.lp
+\fBcurrent\(ulatom\fP(\fIAtom\fP)
+.ip
+Generates
+(through backtracking) all currently known atoms, and
+returns each one as \fIAtom\fP.
+.lp
+\fBcurrent\(ulfunctor\fP(\fIName\fP,\fIFunctor\fP)
+.ip
+Generates
+(through backtracking) all currently known functors,
+and for each one returns its name and most general term as \fIName\fP and
+\fIFunctor\fP respectively. If \fIName\fP is given, only functors with
+that name are generated.
+.lp
+\fBcurrent\(ulpredicate\fP(\fIName\fP,\fIFunctor\fP)
+.ip
+Similar
+to \fBcurrent\(ulfunctor\fP, but it only generates functors
+corresponding to predicates for which there exists 
+a procedure.
+.sh 2 "Internal Database"
+.pp
+This section describes predicates for manipulating an internal indexed database 
+that is kept separate from the normal program database.
+They are intended for more sophisticated database applications and
+are not really necessary for novice users.
+For normal tasks you should be able to program quite satisfactorily
+just using \fBassert\fP and \fBretract\fP.
+.lp
+\fBrecorded\fP(\fIKey\fP,\fITerm\fP,\fIRef\fP)
+.ip
+The
+internal database is searched for terms recorded under the key
+\fIKey\fP. These terms are successively unified with \fITerm\fP in the order
+they occur in the database. At the same time, \fIRef\fP is unified with
+the database reference of the recorded item.
+The key must be given, and may be an atom or complex term.
+If it is a complex term, only the principal functor is significant.
+.lp
+\fBrecorda\fP(\fIKey\fP,\fITerm\fP,\fIRef\fP)
+.ip
+The
+term \fITerm\fP is recorded in the internal database as the first
+item for the key \fIKey\fP, where \fIRef\fP is its database reference.
+The key must be given, and only its principal functor is
+significant.
+.lp
+\fBrecordz\fP(\fIKey\fP,\fITerm\fP,\fIRef\fP)
+.ip
+The
+term \fITerm\fP is recorded in the internal database as the last
+item for the key \fIKey\fP, where \fIRef\fP is its database reference.
+The key must be given, and only its principal functor is
+significant.
+.lp
+\fBerase\fP(\fIRef\fP)
+.ip
+The
+recorded item \fIor\fP clause whose database reference
+is \fIRef\fP is effectively erased from the internal
+database or  program.
+An erased item will no longer be accessible through the predicates
+that search through the database, but will still be accessible
+through its database reference, if this is available in
+the execution state after the call to \fBerase\fP. Only when
+all instances of the item's database reference have been forgotten
+through database erasures and/or backtracking will the item
+be actually removed from the database.
+.lp
+\fBerased\fP(\fI\R\fP)
+.ip
+Suceeds if \fIR\fP is a database reference to a database item
+that has been \fBerase\fPd, otherwise fails.
+.lp
+\fBinstance\fP(\fIRef\fP,\fITerm\fP)
+.ip
+A
+(most general) instance of the recorded term whose database reference
+is \fIRef\fP is unified with \fITerm\fP. \fIRef\fP must be
+instantiated to a database reference. Note that \fBinstance\fP
+will even pick database items that have been \fBerase\fPd.
+.lp
+.sh 2 "Debugging"
+.lp
+\fBdebug\fP
+.ip
+Debug
+mode is switched on. Information will now
+be retained for debugging purposes and executions will
+require more space.
+.lp
+\fBnodebug\fP
+.ip
+Debug
+mode is switched off. Information is no longer retained
+for debugging, and spy points are removed.
+.lp
+\fBtrace\fP
+.ip
+Debug
+mode is switched on, and the interpreter starts tracing from
+the next call to a user goal.
+If \fBtrace\fP was given in a command on its
+own, the goal(s) traced will be those of the next command.
+Since this is a once-off decision, a call to trace is necessary whenever
+tracing is required right from the start of an execution, otherwise
+tracing will only happen at spy points.
+.lp
+\fBspy\fP \fISpec\fP
+.ip
+Spy points
+will be placed on all the procedures given by \fISpec\fP.
+All control flow through the ports of these procedures will henceforth
+be traced.
+If debug mode was previously off, then it will be switched on.
+\fISpec\fP can either be a predicate specification of the form \fIName/Arity\fP
+or \fIName\fP, or a list of such specifications.
+When the \fIName\fP is given without the \fIArity\fP this refers to all
+predicates of that name which currently have definitions.
+If there are none, then nothing will be done.
+Spy points can be placed on particular undefined procedures only
+by using the full form, \fIName/Arity\fP.
+.lp
+\fBnospy\fP \fISpec\fP
+.ip
+Spy points
+are removed from all the procedures given by \fISpec\fP
+(as for \fBspy\fP).
+.lp
+\fBleash\fP(\fIMode\fP) 
+.ip
+Sets the leashing mode to \fIMode\fP, where
+\fIMode\fP can be one of the following
+.(l
+.TS
+l l.
+full	prompt on Call, Exit, BackTo and Fail
+tight	prompt on Call, BackTo and Fail
+half	prompt on Call and BackTo
+loose	prompt on Call
+off	never prompt
+\fIN\fP	T{
+\fIN\fP is an integer. If the binary notation of
+\fIN\fP is 2'\fIcebf\fP, the digits \fIc\fP, \fIe\fP, \fIb\fP
+and \fIf\fP correspond to the Call, Exit BackTo and Fail respectively,
+and are 1 (0) if the corresponding port is leashed (unleashed).
+T}
+.TE
+.)l
+The  initial  \fIleashing mode\fP is `half'.
+.lp
+\fBdebugging\fP
+.ip
+Outputs
+information concerning the status of the debugging package.
+This will show whether debug mode is on, and if it is
+.(l
+what spy points have been set
+
+what mode of leashing is in force.
+.)l
+.sh 2 "Environmental"
+.pp
+.lp
+\&'\fBNOLC\fP'
+.ip
+Establishes
+the no lower-case convention described  in  Section
+2.4.
+.lp
+\&'\fBLC\fP'
+.ip
+Establishes
+the full  character  set  convention  described  in
+Section 2.4. It is the default setting.
+.lp
+\fBop\fP(\fIpriority\fP,\fItype\fP,\fIname\fP)
+.ip
+Treat
+name \fIname\fP as an operator of the stated  \fItype\fP  and
+\fIpriority\fP
+(refer to Section 2.2).
+\fIname\fP may also be a list of names in which
+case all are to be treated as operators of the  stated  \fItype\fP  and
+\fIpriority\fP.
+.lp
+\fBbreak\fP
+.ip
+Causes
+the current  execution  to  be  suspended  at  the  next
+procedure  call.   Then  the message \*(lq[ Break  (level 1) ]\*(rq is
+displayed.  The interpreter is then  ready  to  accept  input  as
+though  it  was  at top level.  
+If another call of \fBbreak\fP is encountered, it moves up to level 2, and
+so on.
+To close the break and resume the
+execution which was suspended, type the \s-2END-OF-INPUT\s0 character.
+Execution will be resumed at the procedure call where
+it had been suspended.  Alternatively,  the  suspended  execution
+can  be aborted by calling the evaluable predicate \fBabort\fP. Refer
+to Section 1.9.
+.lp
+\fBabort\fP
+.ip
+Aborts
+the current execution taking you back to top level.
+Refer to Section 1.9.
+.lp
+\fBsave\fP(\fIF\fP)
+.ip
+The
+system saves the current state of the  system  into  file  \fIF\fP.
+Refer to Section 1.6.
+.lp
+\fBsave\fP(\fIF\fP,\fIWhen\fP)
+.ip
+Saves the current state of the  system  into  file  \fIF\fP.
+\fBWhen\fP is unified with 0 or 1 depending on whether the
+system is returning from the \fBsave\fP goal in the original Prolog
+session or after the saved state in \fIF\fP has been restored
+by invoking Prlog with file \fIF\fP as argument.
+.lp
+\fBprompt\fP(\fIOld\fP,\fINew\fP)
+.ip
+The
+sequence of characters (prompt) which indicates that the
+system is waiting for user input is represented as an atom, and
+matched to \fIOld\fP; the atom bound to \fINew\fP specifies the new
+prompt. In particular, the goal
+.(l
+prompt(X,X)
+.)l
+matches the current prompt to X, without changing it.
+Note that this only affects the prompt issued for reads in the user's
+program; it will not change the propmts used by the system at top level
+etc.
+.lp
+\fBsystem\fP(\fIString\fP)
+.ip
+Calls the operating system with string \fIString\fP as argument. For
+example
+.(l
+system("ls")
+.)l
+will produce a directory listing on \s-2UNIX\s0.
+.lp
+\fBsh\fP
+.ip
+Suspends C-Prolog and enters a recursive command interpreter.
+On \s-2UNIX\s0, the shell used will be that specified in the environment
+variable SHELL.
+.lp
+\fBstatistics\fP
+.ip
+Shows the current allocations and amounts used for each of the
+six working areas of C-Prolog, and also the runtime since C-Prolog
+started. For example:
+.(l
+| ?- statistics.
+atom space: 64K (15596 bytes used)
+aux. stack: 8K (0 bytes used)
+trail: 64K (48 bytes used)
+heap: 256K (30664 bytes used)
+global stack: 256K (0 bytes used)
+local stack: 256K (300 bytes used)
+Runtime:     1.42 sec.
+| ?-
+.)l
+.sh 2 "Preprocessing"
+.lp
+\fBexpand\(ulterm\fP(\fIT1\fP,\fIT2\fP)
+.ip
+Each top level term \fIT1\fP read when consulting a file is rewritten
+into \fIT2\fP before being asserted or executed. The default transformations
+provided by this predicate are the ones for grammar rules and for inline
+expansion of arithmetic expressions.
+The user may define further transformations as clauses for the
+predicate \fBterm\(ulexpansion\fP/2, which has similar arguments.
+User defined transformations are applied \fIbefore\fP system-defined ones.

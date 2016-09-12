@@ -1,0 +1,541 @@
+/* init : Initial boot file for building the Prolog system
+
+                                                 Fernando Pereira
+                                                 Updated: 27 July 83
+*/
+
+                         % Atoms that the code requires
+[].
+','.
+'{}'.
+end_of_file.
+true.
+user.
+$live.
+$break.
+< .
+= .
+> .
+$yes.
+$no.
+- .
+; .
+
+                         % Functors that the code requires
+call(_).
+','(_,_).
+'{}'(_).
+'.'(_,_).
+':-'(_,_).
+':-'(_).
+$hidden_call(_).
+$hidden_term(_).
+
+			% Terms that the code requires
+
+% The first term is List10 which must be constructed specially */
+
+$ttynl,$csult(0,user).
+
+                         % And now we start properly
+
+         % Predicates are attached to evaluable predicates defined in the
+         % code by one of two methods:
+         %
+         %       1) pred(....) :- N.
+         %       2)  :- $sysp(pred(....),N).
+         %
+         %               where N is an integer specifying the evaluable 
+         % predicate - N is the value of the switch label in "main.c".
+         % The difference between these is that with the first method a
+	 % (local) frame will be built which will contain the arguments to the
+         % procedure; whereas in the second case no frame is built.
+
+                         % Set up the Operators
+
+ :-(op(P,T,A),76).
+
+ :-(op(1200,fx,[ :- , ?- ])).
+ :-op(1200,xfx,[ (:-) , --> ]).
+ :-op(1100,xfy,';').
+ :-op(1050,xfy,'->').
+ :-op(1000,xfy,',').
+ :-op(900,fy,[ \+ , not , spy , nospy ]).
+ :-op(700,xfx,[ =, is, =.. , ==, \==, @<, @>, @=<, @>=, =:=, =\=, <, > , =<, >= ]).
+ :-op(500,yfx,[+,-,/\,\/]).
+ :-op(500,fx,[(+),(-),\]).
+ :-op(400,yfx,[*,/,//,<<,>>]).
+ :-op(300,xfx,[mod]).
+ :-op(200,xfy,'^').
+
+
+                         % And now all the evaluable predicates
+
+ $sysp(F,N) :- 100.
+ $sysflgs(F,N) :- 101.
+ $hide_atom(A) :- 171.
+
+ :-$sysp((A,B),6).
+call(P) :- 1.
+:-$sysp($hidden_call(P),121).
+:-$sysp(!,2).
+true.
+ repeat :- 3.
+ :-$sysp(abort,4).
+ :-$sysp($call(_),5).
+
+$not(X) :- $user_call(X), !, fail.
+$not(X).
+
+\+(X) :- $not(X).
+not(X) :- $not(X).
+
+(A -> B ; C) :- !, $cond(A,B,C).
+
+         $cond(A,B,C) :- $user_call(A), !, $user_call(B).
+         $cond(A,B,C) :- $user_call(C).
+
+(A;B) :- $call(A).
+(A;B) :- $call(B).
+(A -> B) :- $user_call(A), !, $user_call(B).
+
+ see(F) :- 10.
+ seeing(F) :- 11.
+ seen :- 12.
+ tell(F) :- 13.
+ append(F) :- 174.
+ telling(F) :- 14.
+ told :- 15.
+ close(F) :- 16.
+ read(T) :- 17.
+ write(T) :- 18.	display(T) :- 274.	% + 256
+ nl :- 19.		ttynl :- 275.		$ttynl :- 275.
+ get0(C) :- 20.		ttyget0(C) :- 276.
+ get(C) :- 21.		ttyget(C) :- 277.
+ skip(C) :- 22.		ttyskip(C) :- 278.
+ put(C) :- 23.		ttyput(C) :- 279.
+ tab(C) :- 24.		ttytab(C) :- 280.
+ fileerrors :- 25.
+ nofileerrors :- 26.
+ rename(F,F1) :- 27.
+ writeq(T) :- 28.
+ sh :- 29.
+ system(S) :- 30.
+
+print(V) :- var(V), !, write(V).
+
+print(X) :- portray(X), !.
+
+print(X) :- write(X).
+
+			% define arithmetic operators
+
+			% nullary ops
+
+  :-$sysflgs(cputime,1).
+  :-$sysflgs(heapused,2).
+  :-$sysflgs(breaklevel,3).
+				% unary operations
+
+  :-$sysflgs([A|B],1).
+  :-$sysflgs(+(A),1).
+  :-$sysflgs(-(A),2).
+  :-$sysflgs(\(A),3).
+  :-$sysflgs(exp(A),4).
+  :-$sysflgs(log(A),5).
+  :-$sysflgs(log10(A),6).
+  :-$sysflgs(sqrt(A),7).
+  :-$sysflgs(sin(A),8).
+  :-$sysflgs(cos(A),9).
+  :-$sysflgs(tan(A),10).
+  :-$sysflgs(asin(A),11).
+  :-$sysflgs(acos(A),12).
+  :-$sysflgs(atan(A),13).
+  :-$sysflgs(floor(A),14).
+
+				% binary operations
+  :-$sysflgs(A+B,1).
+  :-$sysflgs(A-B,2).
+  :-$sysflgs(A*B,3).
+  :-$sysflgs(A/B,4).
+  :-$sysflgs(A mod B,5).
+  :-$sysflgs(A /\ B,6).
+  :-$sysflgs(A\/B,7).
+  :-$sysflgs(A<<B,8).
+  :-$sysflgs(A>>B,9).
+  :-$sysflgs(A//B,10).
+  :-$sysflgs(A^B,11).
+
+% Unary predicates
+
+'$+'(A,X) :- 131.
+'$-'(A,X) :- 132.
+'$\'(A,X) :- 133.
+$exp(A,X) :- 134.
+$log(A,X) :- 135.
+$log10(A,X) :- 136.
+$sqrt(A,X) :- 137.
+$sin(A,X) :- 138.
+$cos(A,X) :- 139.
+tan(A,X) :- 140.
+$asin(A,X) :- 141.
+$acos(A,X) :- 142.
+$atan(A,X) :- 143.
+$floor(A,X) :- 144.
+
+% Binary operations
+
+'$+'(A,B,X) :- 151.
+'$-'(A,B,X) :- 152.
+'$*'(A,B,X) :- 153.
+'$/'(A,B,X) :- 154.
+$mod(A,B,X) :- 155.
+'$/\'(A,B,X) :- 156.
+'$\/'(A,B,X) :- 157.
+'$<<'(A,B,X) :- 158.
+'$>>'(A,B,X) :- 159.
+'$//'(A,B,X) :- 160.
+'$^'(A,B,X) :- 161.
+
+X is Y :- 40.
+X =:= Y :- 41.
+X =\= Y :- 42.
+X < Y :- 43.
+X > Y :- 44.
+X =< Y :- 45.
+X >= Y :- 46.
+
+var(X) :- 50.
+nonvar(X) :- 51.
+integer(X) :- 52.
+number(X) :- 91.
+atomic(X) :- 53.
+atom(X) :- 59.
+primitive(X) :- 118.
+db_reference(X) :- 119.
+
+statistics :- 93.
+
+prompt(_,_) :- 31.
+exists(user) :- !.
+exists(_) :- 32.
+$save(F,I) :- 33.
+
+save(F) :- $save(F,_).
+save(F,I) :- $save(F,I).
+
+X=X.
+functor(T,F,N) :- 56.
+arg(N,T,A) :- 57.
+X=..L :- 58.
+name(X,L) :- 75.
+
+A == B :- 54.
+A \== B :- 55.
+A @< B :- 86.
+A @> B :- 87.
+A @=< B :- 88.
+A @>= B :- 89.
+
+clause(P,Q) :-  !, $checkkey(P), $clause((P:-Q),R,P).
+clause(P,Q,R) :- var(R), !, $checkkey(P), $clause((P:-Q),R,P).
+clause(P,Q,R) :- instance(R,(P:-Q)).
+assert(C) :- 61.     assertz(C) :- 61.
+asserta(C) :- 62.
+assert(C,R) :- 63.     assertz(C,R) :- 63.
+asserta(C,R) :- 64.
+$clause(_,_,_) :- 65.     $clause(_,_,_):-66.
+
+retract(C) :- $retract(C).
+
+$retract(V) :- var(V), !, fail.
+$retract( (Head :- Body) ) :-
+        !,
+        clause(Head,Body,ID),
+        erase(ID).
+$retract( UnitClause ) :-
+        clause(UnitClause,true,ID),
+        erase(ID).
+
+abolish(Pred,Arity) :- 173.
+
+$recorded(_,_,_) :- 67.    $recorded(_,_,_):-68.
+recorded(K,T,R) :- $checkkey(K), $recorded(T,R,K).
+$checkkey(K) :- (var(K);primitive(K)),!,
+      ttynl,display('! invalid key to data base'),ttynl,trace,fail.
+$checkkey(_).
+recorda(K,T,R) :- $checkkey(K), $recorda(K,T,R).
+recordz(K,T,R) :- $checkkey(K), $recordz(K,T,R).
+$recorda(_,_,_) :- 73.
+$recordz(_,_,_) :- 74.
+instance(R,T) :- 69.
+erase(R) :- 60.
+erased(R) :- 92.
+
+$leash(P,N) :- 78.
+$debug(P,N) :- 79.
+current_atom(A) :- 80.
+current_atom(A) :- 81.
+$current_functor(A,N,K,M) :- 82.
+$current_functor(A,N,K,M) :- 83.
+current_functor(A,P) :- nonvar(P),!, functor(P,A,_).
+current_functor(A,P) :-
+        current_atom(A),
+        $current_functor(A,N,0,0),
+        functor(P,A,N).
+current_predicate(A,P) :-
+        current_atom(A),
+        $current_functor(A,N,256,2'11100000),
+        functor(P,A,N).
+
+$flags(F,P,N) :- 84.
+compare(Op,T1,T2) :- 85.
+trace :- 72.
+
+'NOLC'  :-  70.
+'LC'  :-  71.
+
+                         % Various hacky system predicates
+
+ :-$sysp($break(_),102).
+ :-$sysp($exit_break,103).
+ $prompt(_) :- 104.
+ $user_exec(_) :- 105.
+ :-$sysp($save_read_vars,106).
+ :-$sysp($reset_read_vars,107).
+ :-$sysp($repply,108).
+ $recons(_) :- 109.
+ :-$sysp($break_start,110).
+ :-$sysp($break_end,111).
+ $assertr(_) :- 112.
+ :-$sysp($rest_in_peace,113).
+ $user_call(_) :- 114.
+ $repeat :- 3.
+ $read(X) :- 17.
+
+                          % How to get out (various mnemonics)
+
+  :- $sysp(halt,113).
+
+%-----------------------------------------------------------------------
+
+%    Interpreter control
+
+$live:- $cycle(0), $rest_in_peace.     % this is the Prolog session goal
+
+$cycle(0):-
+      prompt(Old,'|    '),
+      $repeat,
+        $prompt('| ?- '), $read(C),
+        $interpret(C,0),
+      prompt(_,Old),
+      !.
+
+$cycle(Status):-
+      prompt(Old,'| '),
+      $repeat,
+        $read(C),
+        $interpret(C,Status),
+      prompt(_,Old),
+      !.
+
+$interpret(C,Status) :-
+      var(C),
+      !,
+      display('! Statement is a variable'), 
+      ttynl,
+      fail.
+
+$interpret(end_of_file,_):-!.
+
+$interpret(C,Status):-
+      $directive(C,Status,D,T),
+      !,
+      prompt(Old,'|: '),
+      $dogoal(T,D),
+      prompt(_,Old),
+      fail.
+
+$interpret(C,Status):-
+      expand_term(C,C1),
+      $assert(C1),
+      !,
+      fail.
+
+$assert(C):-$assertr(C),!.
+$assert(C):-
+      seeing(user),
+      !.
+$assert(C):-
+      display('! clause: '),
+      display(C).
+
+$directive(:-(X),_,X,command) :- !.
+$directive(?-(X),_,X,question) :- !.
+$directive(X,0,X,question).
+
+$dogoal(command,C) :-
+      $user_exec(C),
+      !.
+
+$dogoal(command,_) :-
+      !,
+      ttynl, display('?'),
+      ttynl.
+
+$dogoal(question,Q) :-
+      $save_read_vars,
+      $user_exec(Q),
+      $repply,
+      ttynl,
+      $show_break_level,
+      display(yes),
+      $reset_read_vars,
+      ttynl,
+      !.
+
+$dogoal(question,_) :-
+      ttynl,
+      $show_break_level,
+      display(no),
+      $reset_read_vars,
+      ttynl,
+      !.
+
+
+/*  consult and reconsult  */
+
+consult(X):-!, $break($csult(0,X)).
+
+reconsult(X) :- $break($csult(1,X)).
+
+[X|Rest] :- $conlist([X|Rest]).
+
+         $conlist([]) :- !.
+         $conlist([-X|Rest]) :- !, reconsult(X), $conlist(Rest).
+         $conlist([X|Rest]) :- !, consult(X), $conlist(Rest).
+
+
+$csult(R,F) :-
+      S0 is heapused,
+      T0 is cputime,
+      $recons(R),
+      $checkfile(F),
+      $read_file(F,consult),
+      Tt is cputime-T0,
+      Ts is heapused-S0,
+      display(F), $dpr(R), display(Ts), display(' bytes '),
+      display(Tt), display(' sec.'), ttynl,
+      fail.
+$csult(R,F) :- $exit_break.
+
+$dpr(0) :- !, display(' consulted ').
+$dpr(1) :- display(' reconsulted ').
+
+$read_file(F,S) :-
+      seeing(I),
+      telling(O),
+      see(F),
+      $cycle(S),
+      close(F),
+      see(I),
+      tell(O),
+      fail.
+$read_file(_,_).
+
+$checkfile(F) :-
+      (atom(F);
+        ttynl, display('! Invalid file name: '),
+        display(F), ttynl, fail
+      ),
+      !,
+      (exists(F);
+        ttynl, display('! The file '), display(F),
+        display(' does not exist.'), ttynl, fail
+      ),
+      !.
+
+/* break      */
+
+break :- $break($break).
+
+$break :-
+      $break_start,
+      $read_file(user,0),
+      $break_end,
+      $exit_break.
+$break :- $exit_break.    % just to make sure
+
+$show_break_level :-
+   B is breaklevel,
+   $shb(B).
+
+$shb(0) :- !.
+$shb(N) :- ttyput("["), display(N), ttyput("]"), ttyput(" ").
+
+/* Arithmetic expansion */
+
+expand_exprs(X,Y) :-
+   $carith(X0,X0),
+   $flag_code(X0,X),
+   nonvar(Y),
+   $flag_code(Y0,Y),
+   $carith(_,Y0).
+
+$carith(X,Y) :- 170.
+
+$isop(A,P,M,L,R) :- 172.
+
+current_op(Prio,Type,Atom) :-
+   $gen_atom(Atom),
+   $gen_pos(Type,Pos),
+   $isop(Atom,Pos,Prio,Left,Right),
+   $op_code(Type,Pos,Prio,Left,Right).
+
+$gen_atom(Atom) :- atom(Atom), !.
+$gen_atom(Atom) :- var(Atom), !, current_atom(Atom).
+
+$gen_pos(Type,Pos) :-
+   atom(Type), !,
+   $type_to_pos(Type,Pos,_,_,_).
+$gen_pos(_,Pos) :-
+   $op_pos(Pos).
+
+$op_code(Type,Pos,Prio,Left,Right) :-
+   $type_to_pos(Type,Pos,Prio,LeftExpr,RightExpr),
+   Left is LeftExpr, Right is RightExpr, !.
+
+$op_pos(0).	% PREFIX (must be the same as in rewrite.c)
+$op_pos(1).	% INFIX
+$op_pos(2).	% POSTFIX
+
+$type_to_pos(fx,0,Prio,Prio,Prio-1).
+$type_to_pos(fy,0,Prio,Prio,Prio).
+$type_to_pos(xfx,1,Prio,Prio-1,Prio-1).
+$type_to_pos(xfy,1,Prio,Prio-1,Prio).
+$type_to_pos(yfx,1,Prio,Prio,Prio-1).
+$type_to_pos(yf,2,Prio,Prio,Prio).
+$type_to_pos(xf,2,Prio,Prio-1,Prio).
+
+all_float(X,Y) :-
+   $all_float(X0,X0),
+   $flag_code(X0,X),
+   nonvar(Y),
+   $flag_code(Y0,Y),
+   $all_float(_,Y0).
+
+$all_float(X,Y) :- 90.
+
+$flag_code(1,on).
+$flag_code(0,off).
+
+expand_term(T0,T) :-
+   term_expansion(T0,T1), !,
+   $expand_term(T1,T).
+expand_term(T0,T) :- $expand_term(T0,T).
+
+$expand_term(T0,T) :- $translate_rule(T0,T), !.
+$expand_term((H:-B0),(H:-B)) :- $compile_arith(B0,B), !.
+$expand_term(T,T).
+
+end_of_file.                     % needed here for a special reason...

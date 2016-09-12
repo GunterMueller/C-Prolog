@@ -1,0 +1,64 @@
+/* protect : Setting the flags for the system predicates
+
+						Fernando Pereira
+						Updated: 30 December 82
+*/
+
+
+$mem(X,[X|_]).
+$mem(X,[_|Rest]) :- $mem(X,Rest).
+
+$protected(P,A) :- $unprotected(P,A), !, fail.
+$protected(P,A).
+
+% Predicate flags used here:
+%
+%	
+%	128 (PROTECTED)
+%	 64 (INVISIBLE)
+%	 32 (UNTRACEABLE)
+
+
+%  Cut must be transparent due to the way it is currently
+%  implemented (this fixes bug that prevented tracing
+%  past cuts).
+%  Note that transparent also seem to imply untracable,
+%  which means you don't see cuts at all.
+
+  :- $sysflgs(!,64).
+
+
+			% This list are all transparent and untracable.
+
+  :-(( $mem(X,[ call(_),(A,B),(A;B),$call(_),$hidden_call(_),(A->B)]),
+       $sysflgs(X,96), fail  ;  true )).
+
+			% The following predicates are better off invisible so
+			%  they are made untracable as well.
+
+  :-(( $mem(X,[
+          write(_), writeq(_), nl, get0(_), get(_), skip(_), put(_), tab(_),
+          display(_), ttynl(_), ttytab(_), read(_), spy(_), nospy(_), 
+	  leash(_), trace, debug, nodebug, debugging
+         ]),
+             $sysflgs(X,32), fail  ;  true )).
+
+			%  ALL current predicates but those specified
+			%  by $unprotected are turned into
+			%  system predicates (which cannot be redefined, seen
+			%  by listing etc).
+
+  :-(( current_atom(A), $current_functor(A,Arity,256,0), $protected(A,Arity),
+     functor(Pred,A,Arity), $flags(Pred,Flags,Flags\/128), fail  ;  true )).
+  :- $flags(fail,Flags,Flags\/128). % Must be specially protected (no clauses)
+
+			% Finally, ALL predicates whose names start with a
+			% dollar are made untraceable and their atoms hidden.
+
+  :-(( current_atom(A), name(A,[36|_]),
+	$hide_atom(A),   % THIS MUST BE IN THE LAST GOAL IN THE BOOT LOAD!!
+        $current_functor(A,Arity,256,0),
+         functor(Pred,A,Arity),
+         $flags(Pred,Flags,Flags\/32), fail  ;  true )).
+
+

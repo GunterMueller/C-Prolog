@@ -1,0 +1,106 @@
+/* pl/arith: preprocess arithmetic expressions */
+
+$compile_arith(P0,P) :-
+   $carith(1,1), !,
+   $expand_arith(P0,P).
+$compile_arith(P,P).
+
+$expand_arith(P,P) :- var(P), !.
+$expand_arith(P0,P) :- $expand_arith0(P0,P).
+
+$expand_arith0((P0,Q0),(P,Q)) :- !,
+   $expand_arith(P0,P),
+   $expand_arith(Q0,Q).
+$expand_arith0((P0;Q0),(P;Q)) :- !,
+   $expand_arith(P0,P),
+   $expand_arith(Q0,Q).
+$expand_arith0(X is Y, X is Y) :- var(Y), !.
+$expand_arith0(X is Y, P) :- !,
+   $expand_expression(Y,P0,X0),
+   $drop_is(X0,X,P1),
+   $and(P0,P1,P).
+$expand_arith0(Comp0,R) :-
+   functor(Comp0,Op,2),
+   $comp_op(Op), !,
+   arg(1,Comp0,E),
+   arg(2,Comp0,F),
+   functor(Comp,Op,2),
+   arg(1,Comp,U),
+   arg(2,Comp,V),
+   $expand_expression(E,P,U),
+   $expand_expression(F,Q,V),
+   $and(P,Q,R0),
+   $and(R0,Comp,R).
+$expand_arith0(P,P).
+
+$expand_expression(V,true,V) :- var(V), !.
+$expand_expression(A,true,A) :- atomic(A), !.
+$expand_expression(T,P,V) :-
+   $op_to_pred(T,N,V,P0),
+   $expand_expression_args(N,T,P0,true,Q),
+   $and(Q,P0,P).
+
+$expand_expression_args(0,_,_,P,P) :- !.
+$expand_expression_args(N,T,G,P0,P) :-
+   arg(N,T,E),
+   arg(N,G,V),
+   $expand_expression(E,Q,V),
+   M is N-1,
+   $and(P0,Q,P1),
+   $expand_expression_args(M,T,G,P1,P).
+
+$comp_op(<).
+$comp_op(>).
+$comp_op(=<).
+$comp_op(>=).
+$comp_op(=:=).
+$comp_op(=\=).
+
+$and(true,P,P) :- !.
+$and(P,true,P) :- !.
+$and(P,Q,(P,Q)).
+
+$rename_op(Op0,N,Op) :-
+   $rename_op0(Op0,N,Op), !.
+$rename_op(Op,_,Op).
+
+% Unary operations
+
+$rename_op0(+,1,'$+').
+$rename_op0(-,1,'$-').
+$rename_op0(\,1,'$\').
+$rename_op0(exp,1,$exp).
+$rename_op0(log,1,$log).
+$rename_op0(log10,1,$log10).
+$rename_op0(sqrt,1,$sqrt).
+$rename_op0(sin,1,$sin).
+$rename_op0(cos,1,$cos).
+$rename_op0(tan,1,$tan).
+$rename_op0(asin,1,$asin).
+$rename_op0(acos,1,$acos).
+$rename_op0(atan,1,$atan).
+$rename_op0(floor,1,$floor).
+
+% Binary operations
+
+$rename_op0(+,2,'$+').
+$rename_op0(-,2,'$-').
+$rename_op0(*,2,'$*').
+$rename_op0(/,2,'$/').
+$rename_op0(mod,2,$mod).
+$rename_op0(/\,2,'$/\').
+$rename_op0(\/,2,'$\/').
+$rename_op0(<<,2,'$<<').
+$rename_op0(>>,2,'$>>').
+$rename_op0(//,2,'$//').
+$rename_op0(^,2,'$^').
+
+$op_to_pred(T,N,V,P) :-
+   functor(T,Op0,N),
+   $rename_op(Op0,N,Op),
+   M is N+1,
+   functor(P,Op,M),
+   arg(M,P,V).
+
+$drop_is(V,V,true) :- var(V), !.
+$drop_is(V,X,X is V).

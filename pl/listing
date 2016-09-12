@@ -1,0 +1,64 @@
+/* listing : Listing clauses in the database
+
+                                                 Lawrence
+                                                 Updated: 6 October 81
+*/
+
+listing :-
+        current_predicate(_,Pred),
+        $list_clauses(Pred).
+listing.
+
+
+listing(V) :- var(V), !.       % ignore variables
+listing([]) :- !.
+listing([X|Rest]) :-
+        !,
+        listing(X),
+        listing(Rest).
+listing(X) :-
+        $functorspec(X,Name,Arity),
+        current_predicate(Name,Pred),
+        functor(Pred,Name,Arity),
+        $list_clauses(Pred).
+listing(_).
+
+
+$list_clauses(Pred) :-
+        nl,
+        clause(Pred,Body),
+        $write_clause(Pred,Body),
+        fail.
+
+$write_clause(Head,Body) :-
+        writeq(Head),
+        ( Body = true  ;
+                tab(1), write((:-)),
+                $write_body(Body,3,',')
+        ),
+        put("."), nl,
+        !.
+
+$write_body(X,I,T) :- var(X), !, $beforelit(T,I), writeq(X).
+$write_body((P,Q), IO, T) :-
+        !,
+        $write_body(P,IO,T),
+        put(","),
+        $aftercomma(T,IO,I),
+        $write_body(Q,I,',').
+$write_body((P;Q),I,T) :-
+        !,
+        nl, tab(I-2), put("("),
+        $write_body(P,I,'('),
+        put(";"),
+        $write_body(Q,I,';'),
+        tab(1), put(")").
+$write_body(X,I,T) :-
+        $beforelit(T,I),
+        writeq(X).
+
+$aftercomma(',',I,I) :- !.
+$aftercomma(_,IO,I) :- I is IO + 3.
+
+$beforelit('(',_) :- !, tab(1).
+$beforelit(_,I) :- nl, tab(I).

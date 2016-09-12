@@ -1,0 +1,166 @@
+/* setof : 'setof', 'bagof' and sorting. */
+
+:- op(200,xfy,^).
+
+setof(X,P,Set) :-
+   $setof(X,P,Set).
+
+$setof(X,P,Set) :-
+   $bagof(X,P,Bag),
+   sort(Bag,Set0),
+   Set=Set0.
+
+bagof(X,P,Bag) :-
+   $bagof(X,P,Bag).
+
+$bagof(X,P,Bag) :-
+   $excess_vars(P,X,[],L), $nonempty(L), !,
+   Key =.. [$|L],
+   $bagof(X,P,Key,Bag).
+$bagof(X,P,Bag) :-
+   $tag('$bag','$bag'),
+   $user_call(P),
+   $tag('$bag',X),
+   fail.
+$bagof(X,P,Bag) :- $reap([],Bag), $nonempty(Bag).
+
+$bagof(X,P,Key,Bag) :-
+   $tag('$bag','$bag'),
+   $user_call(P),
+   $tag('$bag',Key-X),
+   fail.
+$bagof(X,P,Key,Bag) :-
+   $reap([],Bags0),
+   keysort(Bags0,Bags),
+   $pick(Bags,Key,Bag).
+
+$nonempty([_|_]).
+
+$reap(L0,L) :-
+   $untag('$bag',X), !,
+   $reap1(X,L0,L).
+
+$reap1(X,L0,L) :- X \== '$bag', !, $reap([X|L0],L).
+$reap1(_,L,L).
+
+$pick(Bags,Key,Bag) :-
+   $nonempty(Bags),
+   $parade(Bags,Key1,Bag1,Bags1),
+   $decide(Key1,Bag1,Bags1,Key,Bag).
+
+$parade([Item|L1],K,[X|B],L) :- $item(Item,K,X), !,
+   $parade(L1,K,B,L).
+$parade(L,K,[],L).
+
+$item(K-X,K,X).
+
+$decide(Key,Bag,Bags,Key,Bag) :- (Bags=[], ! ; true).
+$decide(_,_,Bags,Key,Bag) :- $pick(Bags,Key,Bag).
+
+$excess_vars(T,X,L0,L) :- var(T), !,
+   ( $no_occurrence(T,X), !, $introduce(T,L0,L)
+   ; L = L0 ).
+$excess_vars(X^P,Y,L0,L) :- !, $excess_vars(P,(X,Y),L0,L).
+$excess_vars(setof(X,P,S),Y,L0,L) :- !, $excess_vars((P,S),(X,Y),L0,L).
+$excess_vars(bagof(X,P,S),Y,L0,L) :- !, $excess_vars((P,S),(X,Y),L0,L).
+$excess_vars(T,X,L0,L) :- functor(T,_,N), $rem_excess_vars(N,T,X,L0,L).
+
+$rem_excess_vars(0,_,_,L,L) :- !.
+$rem_excess_vars(N,T,X,L0,L) :-
+   arg(N,T,T1),
+   $excess_vars(T1,X,L0,L1),
+   N1 is N-1,
+   $rem_excess_vars(N1,T,X,L1,L).
+
+$introduce(X,L,L) :- $included(X,L), !.
+$introduce(X,L,[X|L]).
+
+$included(X,L) :- $doesnt_include(L,X), !, fail.
+$included(X,L).
+
+$doesnt_include([],X).
+$doesnt_include([Y|L],X) :- Y \== X, $doesnt_include(L,X).
+
+$no_occurrence(X,Term) :- $contains(Term,X), !, fail.
+$no_occurrence(X,Term).
+
+$contains(T,X) :- var(T), !, T == X.
+$contains(T,X) :- functor(T,_,N), $upto(N,I), arg(I,T,T1), $contains(T1,X).
+
+$upto(N,N) :- N > 0.
+$upto(N,I) :- N > 0, N1 is N-1, $upto(N1,I).
+
+/*---------------------------------------------------------------------------- */
+/* Sorting by bisecting and merging. */
+
+sort(L,R) :- length(L,N), $sort(N,L,_,R1), R=R1.
+
+$sort(2,[X1|L1],L,R) :- !, $comprises(L1,X2,L),
+    compare(Delta,X1,X2),
+  (Delta = (<) , !, R = [X1,X2]
+   ; Delta = (>) , !, R = [X2,X1]
+   ; R = [X2]
+  ).
+$sort(1,[X|L],L,[X]) :- !.
+$sort(0,L,L,[]) :- !.
+$sort(N,L1,L3,R) :-
+   N1 is N//2, N2 is N-N1,
+   $sort(N1,L1,L2,R1),
+   $sort(N2,L2,L3,R2),
+   $merge(R1,R2,R).
+
+$merge([],R,R) :- !.
+$merge(R,[],R) :- !.
+$merge(R1,R2,[X|R]) :-
+   $comprises(R1,X1,R1a), $comprises(R2,X2,R2a),
+   compare(Delta,X1,X2),
+  (Delta = (<) , !, X = X1, $merge(R1a,R2,R)
+   ; Delta = (>) , !, X = X2, $merge(R1,R2a,R)
+   ; X = X1, $merge(R1a,R2a,R)
+  ).
+
+$comprises([X|L],X,L).
+
+/*------------------------------------------------------------------------ */
+/* Sorting on keys by bisecting and merging. */
+
+keysort(L,R) :- length(L,N), $keysort(N,L,_,R1), R=R1.
+
+$keysort(2,[X1|L1],L,R) :- !,
+   $comprises(L1,X2,L),
+   $compare_keys(Delta,X1,X2),
+  (Delta = (>) , !, R = [X2,X1] ; R = [X1,X2] ).
+$keysort(1,[X|L],L,[X]) :- !.
+$keysort(0,L,L,[]) :- !.
+$keysort(N,L1,L3,R) :-
+   N1 is N//2, N2 is N-N1,
+   $keysort(N1,L1,L2,R1),
+   $keysort(N2,L2,L3,R2),
+   $keymerge(R1,R2,R).
+
+$keymerge([],R,R) :- !.
+$keymerge(R,[],R) :- !.
+$keymerge(R1,R2,[X|R]) :-
+   $comprises(R1,X1,R1a), $comprises(R2,X2,R2a),
+   $compare_keys(Delta,X1,X2),
+  (Delta = (>) , !, X = X2, $keymerge(R1,R2a,R)
+   ; X = X1, $keymerge(R1a,R2,R)
+  ).
+
+$compare_keys(Delta,K1-X1,K2-X2) :- compare(Delta,K1,K2).
+
+/*======================================================================*/
+
+X^P :- P.
+
+/*======================================================================*/
+
+$tag(Key,Value) :-
+   recorda(Key,Value,_).
+
+$untag(Key,Value) :-
+   recorded(Key,Value,Ref),
+   erase(Ref).
+
+length([],0) :- !.
+length([_|L],N) :- !, length(L,N0), N is N0+1.

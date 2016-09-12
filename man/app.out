@@ -1,0 +1,131 @@
+
+
+
+
+
+
+
+_A_p_p_e_n_d_i_x _I -- _S_u_m_m_a_r_y _o_f _E_v_a_l_u_a_b_l_e _P_r_e_d_i_c_a_t_e_s
+
+l l.
+abolish(_F,_N)    Abolish  the  procedure  named  _F  arity  _N.
+abort   Abort    execution   of   the   current   directive.
+arg(_N,_T,_A)      The  _Nth  argument   of   term   _T   is   _A.
+assert(_C)       Assert   clause  _C.   assert(_C,_R)     Assert
+clause _C, ref. _R.  asserta(_C)      Assert _C as first clause.
+asserta(_C,_R)    Assert   _C   as   first   clause,   ref.  _R.
+assertz(_C)      Assert      _C      as      last      clause.
+assertz(_C,_R)    Assert   _C   as   last   clause,   ref.   _R.
+atom(_T) Term _T is an atom.   atomic(_T)       Term  _T  is  an
+atom  or integer.  bagof(_X,_P,_B)    The bag of _Xs such that _P
+is provable is _B.  break   Break at the next procedure call.
+call(_P) Execute the procedure call _P.  clause(_P,_Q)     There
+is a clause, head _P, body _Q.   clause(_P,_Q,_R)   There  is  an
+clause,  head  _P, body _Q, ref _R.  close(_F)        Close file
+_F.  compare(_C,_X,_Y)  _C is the result of comparing terms _X and
+_Y.   consult(_F)      Extend  the  program  with clauses from
+file _F.  current_atom(_A) One of the currently defined  atoms
+is _A.  current_functor(_A,_T)    A current functor is named _A,
+m.g. term _T.  current_predicate(_A,_P)  A current predicate is
+named  _A,  m.g.  goal  _P.   db_reference(_T) _T  is a database
+reference.        debug   Switch        on        debugging.
+debugging       Output    debugging    status   information.
+display(_T)      Display   term   _T    on    the    terminal.
+erase(_R)        Erase   the   clause   or  record,  ref.  _R.
+erased(_R)       The object with  ref.  _R  has  been  erased.
+expanded_exprs(_O,_N)     Expression    expansion   if   _N=on.
+expand_term(_T,_X)        Term _T is a shorthand which  expands
+to    term    _X.    exists(_F)       The   file   _F   exists.
+fail    Backtrack immediately.   fileerrors      Enable  re-
+porting  of file errors.  functor(_T,_F,_N)  The top functor of
+term _T has name _F,  arity  _N.   get(_C)  The  next  non-blank
+character  input  is _C.  get0(_C) The next character input is
+_C.    halt    Halt   Prolog,   exit    to    the    monitor.
+instance(_R,_T)   A  m.g.  instance of the record ref. _R is _T.
+integer(_T)      Term _T is an integer.   _Y  is  _X  _Y  is  the
+value  of arithmetic expression _X.  keysort(_L,_S)    The list
+_L sorted by key yields _S.  leash(_M)        Set leashing mode
+to     _M.      listing List     the     current     program.
+listing(_P)      List       the        procedure(s)        _P.
+name(_A,_L)       The  name  of  atom or number _A is string _L.
+nl      Output a new line.   nodebug Switch  off  debugging.
+nofileerrors    Disable    reporting    of    file   errors.
+nonvar(_T)       Term _T is a  non-variable.   nospy  _P Remove
+spy-points  from the procedure(s) _P.  number(_T)       Term _T
+is a number.  op(_P,_T,_A)       Make atom  _A  an  operator  of
+type _T precedence _P.  primitive(_T)    _T is a number or a da-
+tabase reference print(_T)        Portray or else  write  the
+term  _T.   prompt(_A,_B)     Change  the  prompt  from _A to _B.
+put(_C)  The next character output is _C.   read(_T) Read  term
+_T.
+
+
+
+
+
+
+
+
+
+
+
+
+
+reconsult(_F)    Update the program with procedures from file
+_F.   recorda(_K,_T,_R)  Make  term _T the first record under key
+_K, ref. _R.  recorded(_K,_T,_R) Term _T is recorded under key  _K,
+ref.  _R.   recordz(_K,_T,_R)  Make term _T the last record under
+key  _K,  ref.  _R.   rename(_F,_G)     Rename  file  _F  to   _G.
+repeat  Succeed repeatedly.  retract(_C)      Erase the first
+clause of form _C.  save(_F) Save the current state of  Prolog
+in  file  _F.   see(_F)  Make file _F the current input stream.
+seeing(_F)       The  current  input  stream  is   named   _F.
+seen    Close the current input stream.  setof(_X,_P,_B)    The
+set of _Xs such that _P is provable is _B.  sh      Start a re-
+cursive  shell  skip(_C) Skip  input  characters  until after
+character _C.  sort(_L,_S)       The list _L sorted  into  order
+yields  _S.   spy  _P   Set  spy-points on the procedure(s) _P.
+statistics      Display        execution         statistics.
+system(_S)       Execute command _S.  tab(_N)  Output _N spaces.
+tell(_F) Make   file   _F   the   current    output    stream.
+telling(_F)      The   current  output  stream  is  named  _F.
+told    Close the current output stream.  trace   Switch  on
+debugging and start tracing.  true    Succeed.  var(_T)  Term
+_T  is  a  variable.   write(_T)        Write  the   term   _T.
+writeq(_T)       Write  the  term  _T, quoting names if neces-
+sary.  'LC'    The following Prolog text  uses  lower  case.
+'NOLC'  The  following  Prolog  text  uses  upper case only.
+!       Cut any choices taken in the current procedure.   \+
+_P    Goal  _P is not provable.  _X<_Y     As numbers, _X is less
+than _Y.  _X=<_Y    As numbers, _X is less than or equal  to  _Y.
+_X>_Y     As   numbers,  _X  is  greater  than  _Y.   _X>=_Y    As
+numbers, _X is greater than or equal to _Y.   _X=_Y     Terms  _X
+and  _Y  are  equal  (i.e. unified).  _T=.._L   The functor and
+args. of term _T comprise the list _L.  _X==_Y    Terms _X and  _Y
+are  strictly  identical.   _X\==_Y   Terms  _X  and  _Y are not
+strictly  identical.   _X@<_Y    Term  _X  precedes   term   _Y.
+_X@=<_Y   Term  _X  precedes or is identical _Y.  _X@>_Y    Term _X
+follows term _Y.  _X@>=_Y   Term _X follows or is  identical  to
+term  _Y.   [_F|_R]   Perform  the  (re)consult(s) specified by
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+9
+
+9
+
+
+

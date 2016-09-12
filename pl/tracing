@@ -1,0 +1,147 @@
+% tracing : trace control
+
+debug :-
+   $debug(P,1),
+   (  P=1 ;
+      display('Debug mode switched on.'), ttynl
+   ), !.
+
+nodebug :-
+   $debug(P,0),
+   (  P=0 ;
+      (  $someleft, $allspyremove,
+          display('All spy-points removed.'), ttynl   ;
+         true
+      ),
+      display('Debug mode switched off.'), ttynl
+   ), !.
+
+spy(X) :- $spy(X,on), $someleft, debug, fail.
+spy(_).
+
+nospy(X) :- $spy(X,off), fail.
+nospy(_).
+
+leash(X) :- nonvar(X),
+   $leashcode(X,N),
+   $leash(P,N),
+   $prleash(N), !.
+leash(X) :-
+   display('! Invalid leash specification : '),
+   display(X), ttynl, fail.
+
+$leashcode(full,2'1111) :- !.
+$leashcode(on,2'1111):- !.
+$leashcode(half,2'1010) :- !.
+$leashcode(loose,2'1000) :- !.
+$leashcode(off,2'0000) :- !.
+$leashcode(N,N) :- integer(N), N>=0, N=<2'1111, !.
+
+
+$prleash(0) :- !, display('No leashing.'), ttynl.
+$prleash(N) :-
+   $leashcode(Code,N),
+   display('Leashing set to '), display(Code),
+   display(' ('),$pcl(Had,2'1000,N,call),
+   $pcl(Had,2'0100,N,exit),
+   $pcl(Had,2'0010,N,backto),
+   $pcl(Had,2'0001,N,fail),
+   display(').'),ttynl.
+
+$pcl(Had,M,N,W) :- N/\M =:= 0,  !.
+$pcl(Had,_,_,W) :-
+   (  var(Had),Had=yes ;
+       display(',')
+   ),
+   display(W), !.
+
+debugging :-  $debug(D,D),
+   (  D=0, !,
+      display('Debug mode is switched off.'),
+      ttynl, ! ;
+      display('Debug mode is switched on.'), ttynl,
+      ( $someleft, !,
+      display('Spy-points set on : '),ttynl,
+      (  current_atom(Functor),
+      	 $current_functor(Functor,Arity,2'100010000,2'11110000),
+         ttytab(8), $prspy(Functor,Arity), ttynl, fail   ;
+        true
+      )     ;
+            display('There are no spy-points set.'), ttynl
+   ),
+      $leash(L,L), $prleash(L)  ), !.
+
+$spy(V,_) :- var(V), !,
+   display('! Invalid procedure specification : '),
+   display(V),ttynl.
+$spy([],_) :- !.
+$spy([HD|TL]):- !,
+   $spy(HD),
+   $spy(TL).
+$spy(X,off) :-
+   $functorspec(X,Functor,Arity),
+   (  var(Arity) ;  A=Arity ),
+   (  $current_functor(Functor,A,2'100010000,2'11110000),
+      !,
+      ( $current_functor(Functor,Arity,2'100010000,2'11110000),
+         functor(T,Functor,Arity), $flags(T,P,P/\2'11101111),
+          display('Spy-point on '), $prspy(Functor,Arity),
+          display(' removed.'), ttynl, fail
+         ; true
+      )
+      ;  display('There is no spy point on'),
+           display(X), display('.'), ttynl
+   ), !.
+
+$spy(X,on) :-
+   $functorspec(X,Functor,Arity),
+   (  atom(X),
+      (  $current_functor(Functor,Arity,2'100000000,2'11110000),
+         functor(Head,Functor,Arity),
+         $enter(Head,Functor,Arity),
+         fail
+       ; (  $current_functor(Functor,_,2'100000000,2'11100000) ;
+            display('You have no clauses for '), display(X),
+            display(' - nothing done.'), ttynl
+   )     )
+  ; functor(Head,Functor,Arity),
+    (  $current_functor(Functor,Arity,256,2'111100000)
+     ; display('[ Warning: you have no clauses for '),
+      $prspy(Functor,Arity), display(' ]'), ttynl
+    ),
+    $enter(Head,Functor,Arity)
+   ),
+   !.
+
+$spy(_,_).
+
+
+$enter(Head,Functor,Arity) :-
+   (  $current_functor(Functor,Arity,2'100010000,2'11110000),
+      display('There already is a spy-point on ');
+      $flags(Head,P,P),
+      (  P/\2'11100000 =:= 0, $flags(Head,P,P\/2'10000)   ; true),
+      display('Spy-point placed on ')
+   ),
+   $prspy(Functor,Arity),
+   display('.'), ttynl, !.
+
+$prspy(Functor,Arity) :-
+   display(Functor), display(/), display(Arity).
+
+$someleft :- current_atom(A), $current_functor(A,_,2'10000,2'10000), !.
+
+$allspyremove :-
+   current_atom(F),
+    $current_functor(F,A,2'100010000,2'11110000),
+   functor(T,F,A), $flags(T,P,P/\2'11101111), fail.
+$allspyremove.
+
+$functorspec(V,_,_) :- var(V),!, $badspec(V).
+$functorspec(X,X,_) :- atom(X),!.
+$functorspec(F/N,F,N) :- atom(F), integer(N), !.
+$functorspec(X,_,_) :- $badspec(X).
+
+$badspec(X) :- display('! Invalid procedure specification : '),
+               display(X), ttynl, fail.
+

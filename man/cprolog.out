@@ -1,0 +1,3959 @@
+
+
+
+
+.
+
+
+
+
+                              C-Prolog User's Manual
+
+
+                                   Version 1.5
+                                February 22, 1984
+
+                          Edited by Fernando Pereira[1]
+                    SRI International, Menlo Park, California
+
+                                 from material by
+
+                                   David Warren
+                    SRI International, Menlo Park, California
+
+                            David Bowen, Lawrence Byrd
+            Dept. of Artificial Intelligence, University of Edinburgh
+
+                                   Luis Pereira
+                Dept. de Informatica, Universidade Nova de Lisboa
+
+
+                                     _A_b_s_t_r_a_c_t
+
+
+
+               This is a revised edition of the user's  manual  for
+               C-Prolog,  a  Prolog interpreter written in C for 32
+               bit machines.  C-Prolog is based on an earlier  Pro-
+               log  interpreter written in IMP for the EMAS operat-
+               ing system by Luis Damas, who borrowed many  aspects
+               of the design from the DECsystem-10/20 Prolog system
+               developed  by  David   Warren,   Fernando   Pereira,
+               Lawrence  Byrd  and  Luis  Pereira.   This manual is
+               based on the EMAS Prolog manual, which in  turn  was
+               based on the DECsystem-10/20 Prolog manual.
+
+
+
+
+
+
+
+
+
+
+
+
+           ____________________
+              [1]Formerly at EdCAAD, Dept. of Architecture,  University
+           of Edinburgh
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                     1
+
+
+           _1.  _U_s_i_n_g _C-_P_r_o_l_o_g
+
+           _1._1.  _P_r_e_f_a_c_e
+
+                This manual describes C-Prolog,  a  Prolog  interpreter
+           written  in  C.   C-Prolog was developed at EdCAAD, Dept. of
+           Architecture, University of Edinburgh, and  is  based  on  a
+           previous  interpreter, written in IMP for the EMAS operating
+           system by Luis Damas  of  the  Dept.  of  Computer  Science,
+           University of Edinburgh.  C-Prolog was designed for machines
+           with a large, uniform, address space, and assumes a  pointer
+           cell  32  bits  wide.  At  the  time of writing, it has been
+           tested on VAX[2] machines  under  the  UNIX[3]  and  VAX/VMS
+           operating  systems, on the Sun workstation under 4.1/2 UNIX,
+           and has been ported with minor  changes  to  other  MC68000-
+           based workstations and to the Three Rivers PERQ.
+
+                Prolog is a simple but  powerful  programming  language
+           originally  developed  at the University of Marseilles, as a
+           practical tool for programming  in  logic.   From  a  user's
+           point  of  view the major attraction of the language is ease
+           of programming.  Clear, readable, concise  programs  can  be
+           written quickly with few errors.  Prolog is especially suit-
+           able for high-level symbolic programming tasks and has  been
+           applied in many areas of Artificial Intelligence research.
+
+                The system consists of a Prolog interpreter and a  wide
+           range  of  builtin  (system defined) procedures.  Its design
+           was based on the (Edinburgh) DECsystem-10 Prolog system  and
+           the  system  is  closely compatible with DECsystem-10 Prolog
+           and thus is also reasonably close to PDP-11 UNIX  and  RT-11
+           Prolog.
+
+                This manual is not intended as an introduction  to  the
+           Prolog  language  and  how  to use it.  For this purpose you
+           should study:
+
+               _P_r_o_g_r_a_m_m_i_n_g _i_n _P_r_o_l_o_g
+               W. Clocksin & C. Mellish
+               Springer Verlag  1981
+
+
+                This manual assumes that  you  are  familiar  with  the
+           principles  of  the  Prolog  language,  its purpose being to
+           explain how to use C-Prolog, and to describe all the  evalu-
+           able predicates provided by C-Prolog.
+
+           ____________________
+              [2]VAX, VMS, PDP and DECsystem-10 are trademarks of Digi-
+           tal Equipment Corporation.
+              [3]UNIX is a Trademark of Bell Laboratories.
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                     2
+
+
+           _1._2.  _U_s_i_n_g _C-_P_r_o_l_o_g -- _O_v_e_r_v_i_e_w
+
+                C-Prolog offers the  user  an  interactive  programming
+           environment  with tools for incrementally building programs,
+           debugging programs by following their executions, and  modi-
+           fying  parts  of programs without having to start again from
+           scratch.
+
+                The text of a Prolog program is normally created  in  a
+           number  of  files using a text editor.  C-Prolog can then be
+           instructed to read-in programs from  these  files;  this  is
+           called  _l_c_o_n_s_u_l_t_i_n_g  the file.  To change parts of a program
+           being run, it is possible to _r_e_c_o_n_s_u_l_t files containing  the
+           changed parts.  Reconsulting means that definitions for pro-
+           cedures in the file will replace  any  old  definitions  for
+           these procedures.
+
+                It is recommended that you make use of a number of dif-
+           ferent files when writing programs.  Since you will be edit-
+           ing and consulting/reconsulting individual files it is  use-
+           ful to use files to group together related procedures; keep-
+           ing collections of procedures that do  different  things  in
+           different  files.   Thus  a Prolog program will consist of a
+           number of files, each file containing a  number  of  related
+           procedures.
+
+                When your programs start to grow to a fair size, it  is
+           also  a  good idea to have one file which just contains com-
+           mands to the interpreter to  consult  all  the  other  files
+           which form a program.  You will then be able to consult your
+           entire program by just consulting this single file.
+
+           _1._3.  _A_c_c_e_s_s _t_o _C-_P_r_o_l_o_g
+
+                In this manual, we assume that there is  a  command  on
+           your computer
+
+               prolog
+
+           that invokes C-Prolog.
+
+                We assume that there are three keys or key combinations
+           that achieve the effects of terminating an input line, mark-
+           ing end of input, and interrupting execution of  a  program.
+           Because  these  depend  on  operating  system and individual
+           tastes, they are denoted  in  this  manual  by  END-OF-LINE,
+           END-OF-INPUT  and  INTERRUPT respectively (they are carriage
+           return, control-Z and control-C  on  the  computer  this  is
+           being written on).
+
+                Since Prolog makes  syntactic  use  of  the  difference
+           between  upper  and lower case it is important that you have
+           your terminal set up so that it accepts lower  case  in  the
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                     3
+
+
+           normal way.  This means, for a start, that you must be using
+           an upper and lower case terminal - and not, for example,  an
+           upper  case  only  teletype.   It  is possible to use Prolog
+           using upper case only (see Section 2.4) but it  is  unneces-
+           sarily  painful.   We shall assume both upper and lower case
+           throughout this manual.
+
+           If you type the  `prolog'  command,  Prolog  will  output  a
+           banner and prompt you for directives as follows:
+
+               C-Prolog version 1.5
+               | ?-
+
+           There will be a pause between the first line and the  prompt
+           while  the system loads itself. It is possible to type ahead
+           during this period if you get impatient.
+
+                If you give an argument to  the  `prolog'  command,  C-
+           Prolog  will interpret it as the name of a file containing a
+           saved state created earlier, and  will  restore  that  saved
+           state.  Saved states will be explained fully later.
+
+               prolog prog         (Restore "prog")
+
+
+                C-Prolog uses six major internal data areas: the  _h_e_a_p,
+           the  _g_l_o_b_a_l _s_t_a_c_k, the _l_o_c_a_l _s_t_a_c_k, the _t_r_a_i_l, the _a_t_o_m _a_r_e_a
+           and the _a_u_x_i_l_i_a_r_y _s_t_a_c_k. Although the  system  is  initially
+           configured  with  reasonable  allocations  for each of those
+           areas, a particular program might exceed one of the  alloca-
+           tions,  causing an error message. Ideally, the system should
+           adjust the available storage among areas automatically,  but
+           this facility is not implemented yet.  Instead, the user may
+           specify when starting Prolog the allocations  (in  K  bytes)
+           for some or all of the areas. This is done by giving command
+           line switches between the program name and the optional file
+           argument. For example,
+
+               prolog -h 1000 -g 1000 -l 500 bigprogram
+
+           specifies heap and global stack allocations of 1000 K and  a
+           local  stack  allocation  of 500 K. The full set of switches
+           is:
+
+
+               -h _N   heap allocation is _N K bytes
+               -g _N   global stack allocation is _N K bytes
+               -l _N   local stack allocation is _N K bytes
+               -t _N   trail allocation is _N K bytes
+               -a _N   atom area allocation is _N K bytes
+               -x _N   auxiliary stack allocation is _N K bytes
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                     4
+
+
+           _1._4.  _R_e_a_d_i_n_g-_i_n _P_r_o_g_r_a_m_s
+
+                A  program  is  made  up  of  a  sequence  of  clauses,
+           possibly  interspersed   with   directives   to   the inter-
+           preter.  The clauses of  a  procedure  do  not  have  to  be
+           immediately  consecutive,  but remember that their  relative
+           order  may  be  important.
+
+                To input a program from a file _f_i_l_e,  give  the  direc-
+           tive:
+
+               | ?- [_f_i_l_e].
+
+           which will instruct the interpreter to consult the  program.
+           The  file  specification _f_i_l_e must be a Prolog atom.  It may
+           be any file name, note that if this file name contains char-
+           acters  which are not normally allowed in an atom then it is
+           necessary to surround the whole file specification with sin-
+           gle  quotes  (since quoted atoms can include any character),
+           for example
+
+               | ?- ['people/greeks'].
+
+           The specified file is then read in.  Clauses in the file are
+           stored  in  the  database  ready  to  be executed, while any
+           directives are obeyed as they are encountered.  When the end
+           of  the file is found,  the interpreter displays on the ter-
+           minal the time spent in  reading-in   and  the   number   of
+           bytes occupied  by  the program.
+
+                In  general,  this  directive  can  be  any   list   of
+           filenames, such as:
+
+               | ?- [myprogram, extras, testbits].
+
+           In this case all  three  files  would  be  consulted.  If  a
+           filename is preceded by a minus sign, as in:
+
+               | ?- [-testbits, -moreideas].
+
+           then that file is reconsulted. The difference  between  con-
+           sulting and reconsulting is important, and works as follows:
+           if a file is consulted then all the clauses in the file  are
+           simply added to C-Prolog's database. If you consult the same
+           file twice then you will get two copies of all the  clauses.
+           However,  if  a file is reconsulted then the clauses for all
+           the procedures in the file will replace any existing clauses
+           for  those  procedures, that is any such previously existing
+           clauses in the database get thrown  away.   Reconsulting  is
+           useful for telling Prolog about corrections in your program.
+
+                Clauses may also be typed in directly at the  terminal.
+           To  enter  clauses  at  the  terminal,  you  must  give  the
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                     5
+
+
+           directive:
+
+               | ?- [user].
+
+           The interpreter is now in a state where it expects input  of
+           clauses  or  directives.   To get back  to  the top level of
+           the interpreter, type the END-OF-INPUT character.
+
+                Typing clauses directly into C-Prolog is  only   recom-
+           mended  if  the  clauses  will  not  be  needed permanently,
+           and are few in number.  For significant bits of program  you
+           should  use  an editor to produce a file containing the text
+           of the program.
+
+           _1._5.  _D_i_r_e_c_t_i_v_e_s:  _Q_u_e_s_t_i_o_n_s _a_n_d _C_o_m_m_a_n_d_s
+
+                When Prolog is at top level (signified  by  an  initial
+           prompt  of  "| ?- ",  with  continuation lines prompted with
+           "|    ", that is indented out from the left margin) it reads
+           in terms and treats them as directives to the interpreter to
+           try and satisfy some goals.   These  directives  are  called
+           questions.  Remember that Prolog terms must terminate with a
+           period ("."), and that therefore  Prolog  will  not  execute
+           anything  for  you until you have typed the period (and then
+           END-OF-LINE) at the end of the directive.
+
+                Suppose list membership has been defined by:
+
+               member(X,[X|_]).
+               member(X,[_|L]) :- member(X,L).
+
+           (Note the use of anonymous variables written "_").
+
+                If the goal(s) specified in a question  can  be  satis-
+           fied, and if there are no variables as in this example:
+
+               | ?- member(b,[a,b,c]).
+
+           then the system answers
+
+               yes
+
+           and execution of the question terminates.
+
+                If variables are included in  the  question,  then  the
+           final  value  of  each  variable  is  displayed  (except for
+           anonymous variables).  Thus the question
+
+               | ?- member(X,[a,b,c]).
+
+           would be answered by
+
+               X = a
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                     6
+
+
+           At this point the interpreter is waiting for you to indicate
+           whether  that solution is sufficient, or whether you want it
+           to backtrack to see if there are any more solutions.  Simply
+           typing END-OF-LINE terminates the question, while typing ";"
+           followed by END-OF-LINE causes the system to backtrack look-
+           ing  for alternative solutions.  If no further solutions can
+           be found it outputs
+
+               no
+
+           The outcome of some questions is  shown   below,   where   a
+           number  preceded  by  "_"  is  a system-generated name for a
+           variable.
+
+               | ?- member(X,[tom,dick,harry]).
+               X = tom ;
+               X = dick ;
+               X = harry ;
+               no
+               | ?- member(X,[a,b,f(Y,c)]),member(X,[f(b,Z),d]).
+               Y = b,
+               X = f(b,c),
+               Z = c
+                                       % Just END-OF-LINE typed here
+               yes
+               | ?- member(X,[f(_),g]).
+               X = f(_1728)
+               yes
+               | ?-
+
+           When C-Prolog reads terms from a file (or from the  terminal
+           following  a  call to [user]), it treats them all as program
+           clauses. In order to get the interpreter to  execute  direc-
+           tives  from  a file they must be preceded by `?-', for ques-
+           tions, or `:-', for commands.
+
+                Commands are like questions except  that  they  do  not
+           cause answers to be printed out.  They always start with the
+           symbol ":-". At top level this is simply written  after  the
+           prompted  "?-"  which  is  then effectively overridden.  Any
+           required output must be programmed explicitly; for  example,
+           the command
+
+               :- member(3,[1,2,3]), write(ok).
+
+           directs the system to check whether 3 belongs  to  the  list
+           [1,2,3],  and  to output "ok" if so.  Execution of a command
+           terminates when all the goals  in  the  command  have   been
+           successfully    executed.     Other  alternative   solutions
+           are  not  sought (one may imagine an implicit "cut"  at  the
+           end  of  the command).  If no solution  can  be  found,  the
+           system gives:
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                     7
+
+
+               ?
+
+           as a warning.
+
+                The main use for commands (as opposed to questions)  is
+           to allow files to contain directives which call various pro-
+           cedures, but for which you don't want to  have  the  answers
+           printed  out.   In such cases you only want to call the pro-
+           cedures for effect.  A useful example would be the use of  a
+           directive  in  a  file  which consults a whole list of other
+           files, such as[4]:
+
+               :-([ bits, bobs, mainpart, testcases, data, junk ]).
+
+
+                If this directive was contained in the  file  `program'
+           then  typing the following at top level would be a quick way
+           of loading your entire program:
+
+               | ?- [program].
+
+
+                When you are simply interacting with the top  level  of
+           the Prolog interpreter the distinction between questions and
+           commands is not very important.  At the top level you should
+           normally only type questions. In a file, if you wish to exe-
+           cute some goals then you should use a command. That  is,  to
+           execute  a  directive in a file it must be preceded by ":-",
+           otherwise it will be treated as a clause.
+
+           _1._6.  _S_a_v_i_n_g _A _P_r_o_g_r_a_m
+
+                Once a program has been read, the interpreter will have
+           available  all  the information necessary for its execution.
+           This information is called a program _s_t_a_t_e.
+
+                The state of a program may  be  saved  on  a  file  for
+           future  execution.  To save a program into a file _f_i_l_e, per-
+           form the command:
+
+               ?- save(_f_i_l_e).
+
+           Save can be called at top level, from within a  break  level
+           (q.v.), or from anywhere within a program.
+
+           ____________________
+              [4]The extra parentheses, with the `:-' immediately  next
+           to  them, are currently essential due to a problem with pre-
+           fix operators (like `:-') and lists. They are  not  required
+           for  commands  that  do not contain lists.  This restriction
+           will be eventually removed.
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                     8
+
+
+           _1._7.  _R_e_s_t_o_r_i_n_g _A _S_a_v_e_d _P_r_o_g_r_a_m
+
+                Once a program has been saved into a   file   _f_i_l_e,  C-
+           Prolog can be restored to this saved state by invoking it as
+           follows:
+
+               prolog _f_i_l_e
+
+           After execution of this command, the interpreter will be  in
+           _e_x_a_c_t_l_y  the  same state as existed immediately prior to the
+           call  to  save, except for open files, which  are  automati-
+           cally  closed  by save.  That is to say execution will start
+           at the goal immediately following the call to save, just  as
+           if  save  had returned successfully.  If you saved the state
+           at top level then you will be back at top level, but if  you
+           explicitly  called  save  from  within your program then the
+           execution of your program will continue.
+
+                Saved states can only be restored when C-Prolog is ini-
+           tially  run  from command level. Version 1.5 provides no way
+           of restoring a saved state from inside C-Prolog.
+
+                Note that when a new version of C-Prolog is  installed,
+           saved  states  created with the old version may become unus-
+           able.  You are thus advised to rely on source files for your
+           programs and not on some gigantic saved state.
+
+           _1._8.  _P_r_o_g_r_a_m _E_x_e_c_u_t_i_o_n _A_n_d _I_n_t_e_r_r_u_p_t_i_o_n
+
+                Execution of a  program  is  started  by   giving   the
+           interpreter  a directive which contains a call to one of the
+           program's procedures.
+
+                Only when  execution  of  one  directive  is   complete
+           does   the  interpreter  become  ready  for  another  direc-
+           tive.  However, one may interrupt the normal execution of  a
+           directive by hitting the INTERRUPT key on your terminal.  In
+           response to the prompt
+
+               Action (h for help):
+
+           you can type either "a", "t", "d" or "c"  followed  by  END-
+           OF-LINE.   The  "a" response will force Prolog to abort back
+           to top level, the "t" option will switch on tracing, the "d"
+           response   will  switch on debugging and continue the execu-
+           tion, and the "c" response will just continue the execution.
+
+           _1._9.  _N_e_s_t_e_d _E_x_e_c_u_t_i_o_n_s -- _B_r_e_a_k _a_n_d _A_b_o_r_t
+
+                C-Prolog provides a way to  suspend  the  execution  of
+           your program and to enter a new incarnation of the top level
+           where you can issue directives to solve goals etc.  When the
+           evaluable predicate break is called, the message
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                     9
+
+
+               [ Break  (level 1) ]
+
+           will be displayed.  This signals the start of  a  _b_r_e_a_k  and
+           except  for  the  effect  of aborts (see below), it is as if
+           the interpreter was at top level.  If break is called within
+           a  break,  then  another recursive break is started (and the
+           message will say (level 2) etc).  Breaks can be  arbitrarily
+           nested.
+
+                Typing the END-OF-INPUT   character  will   close   the
+           break   and  resume   the   execution  which  was suspended,
+           starting at the procedure call  where  the  suspension  took
+           place.
+
+                To abort the  current  execution, forcing  an   immedi-
+           ate  failure of the directive being executed and a return to
+           the top level of the interpreter, call the evaluable  predi-
+           cate  abort,  either  from  the  program or by executing the
+           directive:
+
+               | ?- abort.
+
+           within a break.  In this case no END-OF-INPUT  character  is
+           needed to close the break, because _a_l_l break levels are dis-
+           carded and the system returns right back to top  level.  The
+           "a" response to INTERRUPT (described above) can also be used
+           to force an abort.
+
+           _1._1_0.  _E_x_i_t_i_n_g _F_r_o_m _T_h_e _I_n_t_e_r_p_r_e_t_e_r
+
+                To exit from C-Prolog interpreter you should  give  the
+           directive:
+
+               | ?- halt.
+
+           This can be issued either at top level, or within  a  break,
+           or indeed from within your program.
+
+                If your program is  still  executing  then  you  should
+           interrupt  it  and  abort to return to top level so that you
+           can call halt.
+
+                Typing the END-OF-INPUT  charater  at  top  level  also
+           causes C-Prolog to terminate.
+
+           _2.  _P_r_o_l_o_g _S_y_n_t_a_x
+
+           _2._1.  _T_e_r_m_s
+
+                The data objects of the language are called  _t_e_r_ms.   A
+           term  is either a _c_o_n_s_t_a_n_t, a _v_a_r_i_a_b_l_e or a _c_o_m_p_o_u_n_d _t_e_r_m.
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    10
+
+
+                The constants include _n_u_m_b_e_rs such as
+
+               0   -999   -5.23  0.23E-5
+
+
+                Constants also include _a_t_o_ms such as
+
+               a   void   =   :=   'Algol-68'   []
+
+           The symbol for an atom can be any  sequence  of  characters,
+           written   in single quotes if there is possibility of confu-
+           sion with other symbols (such as variables or  numbers).  As
+           in  other   programming  languages,  constants  are definite
+           elementary objects.
+
+                Variables  are  distinguished  by  an  initial  capital
+           letter  or  by the initial character "_", for example
+
+               X   Value   A   A1   _3   _RESULT
+
+           If a variable is only referred to once, it does not need  to
+           be   named  and   may  be  written as an _a_n_o_n_y_m_o_u_s variable,
+           indicated by the underline character "_".
+
+                A variable should be thought of as  standing  for  some
+           definite   but  unidentified   object.   A variable  is  not
+           simply  a  writeable storage  location  as   in   most  pro-
+           gramming languages;  rather it is a local name for some data
+           object, cf.  the  variable  of   pure   LISP   and  constant
+           declarations in Pascal.
+
+                The structured data objects of  the  language  are  the
+           compound terms.  A compound term comprises a _f_u_n_c_t_o_r (called
+           the _p_r_i_n_c_i_p_a_l functor of the term) and a sequence of one  or
+           more  terms called _a_r_g_u_m_e_n_t_s.  A functor is characterised by
+           its _n_a_m_e, which is an atom, and its _a_r_i_t_y or number of argu-
+           ments.  For example the compound term whose functor is named
+           `point' of arity 3, with arguments X, Y and Z, is written
+
+               point(X,Y,Z)
+
+           An atom is considered to be a functor of arity 0.
+
+                One  may  think  of  a  functor  as  a record type  and
+           the  arguments  of  a  compound  term  as the  fields  of  a
+           record.   Compound terms are  usefully  pictured  as  trees.
+           For example, the term
+
+               s(np(john),vp(v(likes),np(mary)))
+
+           would be pictured as the structure
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    11
+
+
+                      s
+                    /   \
+                  np      vp
+                  |      /  \
+                john    v     np
+                        |     |
+                      likes  mary
+
+
+                Sometimes it is convenient to write certain functors as
+           _o_p_e_r_a_t_o_r_s  -- 2-ary functors may be declared as _i_n_f_i_x opera-
+           tors and 1-ary functors  as  _p_r_e_f_i_x  or  _p_o_s_t_f_i_x  operators.
+           Thus it is possible to write
+
+               X+Y     (P;Q)     X<Y      +X     P;
+
+           as optional alternatives to
+
+               +(X,Y)   ;(P,Q)   <(X,Y)   +(X)   ;(P)
+
+           Operators are described fully in the next section.
+
+                _L_i_s_ts form an important class  of  data  structures  in
+           Prolog.   They   are  essentially  the  same  as  the  lists
+           of LISP: a list either is the atom
+
+               []
+
+           representing the empty list, or is  a  compound  term   with
+           functor   `.'  and  two  arguments  which  are  respectively
+           the head and tail of the  list.   Thus   a   list   of   the
+           first  three  natural  numbers  is  the structure
+
+                 .
+                / \
+               1    .
+                   / \
+                  2    .
+                      / \
+                     3   []
+
+           which could be written, using the standard syntax, as
+
+               .(1,.(2,.(3,[])))
+
+           but which is normally written, in a special  list  notation,
+           as
+
+               [1,2,3]
+
+           The special list notation in the case when the  tail  of   a
+           list  is  a variable is exemplified by
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    12
+
+
+               [X|L]     [a,b|L]
+
+           representing
+
+                  .                .
+                 / \             / \
+               X     L          a    .
+                                    / \
+                                  b     L
+
+           respectively.
+
+                Note that this list syntax is only syntactic sugar  for
+           terms  of  the  form `.'(_,_) and does not provide any addi-
+           tional facilities that were not available in Prolog.
+
+                For convenience, a  further   notational   variant   is
+           allowed   for lists  of  integers  which correspond to ASCII
+           character codes.  Lists written in this notation are  called
+           _s_t_r_i_n_gs.  For example,
+
+               "Prolog"
+
+           represents exactly the same list as
+
+               [80,114,111,108,111,103]
+
+
+           _2._2.  _O_p_e_r_a_t_o_r_s
+
+                Operators in Prolog are simply  a  notational  conveni-
+           ence.  For example, the expression
+
+               2 + 1
+
+           could also be written +(2,1).  It  should  be  noticed  that
+           this expression represents the structure
+
+                  +
+                /   \
+               2     1
+
+           and not the number 3.  The addition would only be  performed
+           if the structure was passed as an argument to an appropriate
+           procedure (such as is - see Section 5.2).
+
+                The Prolog syntax caters for operators  of  three  main
+           kinds   -  infix,  prefix  and  postfix.   An infix operator
+           appears between its two arguments, while a  prefix  operator
+           precedes its single argument and a postfix operator is writ-
+           ten after its single argument.
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    13
+
+
+                Each operator has a _p_r_e_c_e_d_e_n_c_e, which is a number  from
+           1   to   1200.   The  precedence  is  used  to  disambiguate
+           expressions  where  the  structure  of  the   term   denoted
+           is  not  made explicit through the  use  of  brackets.   The
+           general  rule is that the operator  with  the  _h_i_g_h_e_s_t  pre-
+           cedence  is  the  principal  functor.   Thus  if `+'  has  a
+           higher precedence than `/', then
+
+               a+b/c     a+(b/c)
+
+           are equivalent and denote the term "+(a,/(b,c))".  Note that
+           the   infix  form  of the term "/(+(a,b),c)" must be written
+           with explicit brackets
+
+               (a+b)/c
+
+
+                If there are two operators in the subexpression  having
+           the   same  highest   precedence,   the  ambiguity  must  be
+           resolved from the _t_y_p_e_s  of  the  operators.   The  possible
+           types for an infix operator are
+
+               xfx     xfy     yfx
+
+           With an operator of type `xfx', it  is  a  requirement  that
+           both  of  the two  subexpressions which are the arguments of
+           the operator must be of LOWER precedence  than  the   opera-
+           tor  itself,  i.e.   their  principal functors  must  be  of
+           lower  precedence, unless the  subexpression  is  explicitly
+           bracketed   (which   gives  it  zero  precedence).  With  an
+           operator of type `xfy', only the first or  left-hand  subex-
+           pression  must be of lower precedence;  the second can be of
+           the _s_a_m_e  precedence  as the main operator;  and vice  versa
+           for an operator of type `yfx'.
+
+                For example, if the operators `+' and  `-'  both   have
+           type  `yfx' and are of the same precedence, then the expres-
+           sion
+
+               a-b+c
+
+           is valid, and means
+
+               (a-b)+c     i.e.  +(-(a,b),c)
+
+           Note that the expression would be invalid if the   operators
+           had  type `xfx', and would mean
+
+               a-(b+c)     i.e.  -(a,+(b,c))
+
+           if the types were both `xfy'.
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    14
+
+
+                The possible types for a prefix operator are
+
+               fx        fy
+
+           and for a postfix operator they are
+
+               xf        yf
+
+           The meaning of the types should be clear by   analogy   with
+           those  for infix  operators.   As  an example, if `not' were
+           declared as a prefix operator of type `fy', then
+
+               not not P
+
+           would be a permissible way to write "not(not(P))".  If   the
+           type   were  `fx',  the  preceding  expression  would not be
+           legal, although
+
+               not P
+
+           would still be a permissible form for "not(P)".
+
+                In C-Prolog, a functor named _n_a_m_e is  declared  as   an
+           operator  of  type _t_y_p_e and precedence _p_r_e_c_e_d_e_n_c_e by calling
+           the evaluable predicate op:
+
+               | ?- op(_p_r_e_c_e_d_e_n_c_e,_t_y_p_e,_n_a_m_e).
+
+           The argument _n_a_m_e can also be a list of names  of  operators
+           of the same type and precedence.
+
+                It is possible to have more than one  operator  of  the
+           same   name,  so  long  as they are of different kinds, i.e.
+           infix, prefix or postfix.  An operator of any  kind  may  be
+           redefined  by  a new declaration  of  the same  kind.   This
+           applies equally to operators which are provided as  _s_t_a_n_d_a_r_d
+           in C-Prolog, namely:
+
+
+               :- op(   1200,   xfx,   [ :-, --> ]).
+               :- op(   1200,    fx,   [ :-, ?- ]).
+               :- op(   1100,   xfy,   [ ; ]).
+               :- op(   1050,   xfy,   [ -> ]).
+               :- op(   1000,   xfy,   [ ',' ]).   /* See note below */
+               :- op(    900,    fy,   [ not, \+, spy, nospy ]).
+               :- op(    700,   xfx,   [ =, is, =.., ==, \==, @<, @>, @=<, @>=,
+                                         =:=, =\=, <, >, =<, >= ]).
+               :- op(    500,   yfx,   [ +, -, /\, \/ ]).
+               :- op(    500,    fx,   [ +, - ]).
+               :- op(    400,   yfx,   [ *, /, //, <<, >> ]).
+               :- op(    300,   xfx,   [ mod ]).
+               :- op(    200,   xfy,   [ ^ ]).
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    15
+
+
+                Operator declarations are most usefuly placed in direc-
+           tives  at  the  top  of your program files. In this case the
+           directive should be a command as shown above. Another common
+           method  of  organisation is to have one file just containing
+           commands to declare all the necessary operators.  This  file
+           is then always consulted first.
+
+                Note that a comma written literally as  a   punctuation
+           character can be used as though it were an infix operator of
+           precedence 1000 and type `xfy':
+
+               X,Y    ','(X,Y)
+
+           represent the same compound term.  But  note  that  a  comma
+           written as  a quoted atom is _n_o_t a standard operator.
+
+                Note also that the  arguments  of   a   compound   term
+           written   in  standard   syntax  must be expressions of pre-
+           cedence _b_e_l_o_w 1000. Thus it  is  necessary  to  bracket  the
+           expression "P:-Q" in
+
+               assert((P:-Q))
+
+           The following syntax restrictions serve  to remove potential
+           ambiguity associated with prefix operators.
+
+           -    In a term written in standard  syntax,  the   principal
+                functor    and   its   following   "("   must   _n_o_t  be
+                separated by any blankspace.  Thus
+
+                    point (X,Y,Z)
+
+                is invalid syntax.
+
+           -    If the argument of a prefix operator starts with a "(",
+                this  "(" must  be  separated  from  the operator by at
+                least one space or other non-printable character.  Thus
+
+                    :-(p;q),r.
+
+                (where `:-' is the prefix operator) is invalid  syntax,
+                and must be written as
+
+                    :- (p;q),r.
+
+
+           -    If a prefix  operator  is  written  without  an   argu-
+                ment,   as   an ordinary  atom,  the  atom  is  treated
+                as  an expression of the same precedence as the  prefix
+                operator,  and   must   therefore   be  bracketed where
+                necessary.  Thus the brackets are necessary in
+
+                    X = (?-)
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    16
+
+
+           _2._3.  _S_y_n_t_a_x _E_r_r_o_r_s
+
+                Syntax  errors  are  detected   when  reading.     Each
+           clause,  directive  or  in  general  any term read-in by the
+           evaluable predicate read that fails to  comply  with  syntax
+           requirements  is displayed on the terminal  as  soon  as  it
+           is read.  A mark indicates the point in the string  of  sym-
+           bols  where the parser has failed to continue  its analysis.
+           For example, typing
+
+               member(X,X L).
+
+           gives:
+
+               ***syntax error***
+               member(X,X
+               ***here***
+                L).
+
+
+                Syntax errors do not disrupt the  (re)consulting  of  a
+           file  in  any way except that the clause or command with the
+           syntax error will be ignored[5] All the other clauses in the
+           file  will  have been read-in properly.  If the syntax error
+           occurs at top level then you should just  retype  the  ques-
+           tion.  Given that Prolog has a very simple syntax it is usu-
+           ally quite straightforward to see what the problems is (look
+           for  missing  brackets in particular).  The book _P_r_o_g_r_a_m_m_i_n_g
+           _i_n _P_r_o_l_o_g gives further examples.
+
+           _2._4.  _U_s_i_n_g _a _T_e_r_m_i_n_a_l _w_i_t_h_o_u_t _L_o_w_e_r-_C_a_s_e
+
+                The syntax of Prolog assumes that a full ASCII  charac-
+           ter set  is available.  With this _f_u_l_l _c_h_a_r_a_c_t_e_r _s_e_t or `LC'
+           convention, variables are  (normally)  distinguished  by  an
+           initial  capital  letter, while  atoms  and  other  functors
+           must start with a lower-case letter (unless enclosed in sin-
+           gle quotes).
+
+                When lower-case is not available, the _n_o _l_o_w_e_r-_c_a_s_e  or
+           `NOLC'  convention has to be adopted.  With this convention,
+           variables must be  distinguished  by  an  initial  underline
+           character  "_", and the names  of atoms  and other functors,
+           which now have to be written in upper-case,  are  implicitly
+           translated  into  lower-case  (unless  enclosed   in  single
+           quotes). For example,
+
+               _VALUE2
+
+           ____________________
+              [5]After all, it could not be read.
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    17
+
+
+           is a variable, while
+
+               VALUE2
+
+           is `NOLC' convention notation for the atom which is  identi-
+           cal to:
+
+               value2
+
+           written in the `LC' convention.
+
+                The default convention is `LC'. To  switch  to  the  no
+           lower-case convention, call the evaluable predicate `NOLC':
+
+               | ?- 'NOLC'.
+
+           To switch back to  the  full   character   set   convention,
+           call  the evaluable predicate `LC':
+
+               | ?- 'LC'.
+
+
+                Note that the names of these two procedures consist  of
+           upper-case  letters   (so  that  they  can  be  referred  to
+           on  all devices), and therefore the  names  must  _a_l_w_a_y_s  be
+           enclosed in single quotes.
+
+                It is recommended that the `NOLC'  convention  only  be
+           used in emergencies, since the standard syntax is far easier
+           to use and is also easier for other people to read.
+
+           _3.  _T_h_e _M_e_a_n_i_n_g _o_f _P_r_o_l_o_g _P_r_o_g_r_a_m_s
+
+           _3._1.  _P_r_o_g_r_a_m_s
+
+                A fundamental unit of a logic program is  the  _l_i_t_e_r_a_l,
+           for instance
+
+               gives(tom,apple,teacher)   reverse([1,2,3],L)   X<Y
+
+           A literal is merely a term distinguished by the  context  in
+           which it appears in the program.  The (principal) functor of
+           a literal is called a _p_r_e_d_i_c_a_t_e.    It  corresponds  roughly
+           to   a verb in natural language, or to a procedure name in a
+           conventional programming language.
+
+                A logic _p_r_o_g_r_a_m consists simply of a sequence of state-
+           ments  called _c_l_a_u_s_e_s, which  are  analogous to sentences of
+           natural language.  A clause comprises a  _h_e_a_d  and  a  _b_o_d_y.
+           The  head  either  consists of a single literal or is empty.
+           The body  consists of a sequence of  zero  or  more  literal
+           (that is, it too may be empty). The body literals are called
+           _g_o_a_l_s or _p_r_o_c_e_d_u_r_e _c_a_l_l_s.
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    18
+
+
+                A clause with empty head is a _n_e_g_a_t_i_v_e _c_l_a_u_s_e or _q_u_e_r_y,
+           and represents a command to the interpreter to start proving
+           the goals in its body. The form of a query is
+
+               :- _P,_Q,_R.
+
+           but, as described in Section 1.5, the ":-"  can  be  omitted
+           when typing a command to the interpreter.
+
+                From here on, when we use the term "clause" we  mean  a
+           _p_o_s_i_t_i_v_e clause, that is one with nonempty head.
+
+                If the body of a clause is empty, the clause is  called
+           a _u_n_i_t clause, and  is written in the form
+
+               _P.
+
+           where _P is the head literal.   We  interpret  this  declara-
+           tively as
+
+               "_P is true."
+
+           and procedurally as
+
+               "_P can be satisfied."
+
+           If  the  body of a clause is nonempty, the clause is  called
+           a _n_o_n_u_n_i_t _c_l_a_u_s_e, and is written in the form
+
+               _P :- _Q, _R, _S.
+
+           where _P is the head and _Q, _R and _S are the goals which  make
+           up   the   body.   We can read such a clause either declara-
+           tively as
+
+               "_P is true if _Q and _R and _S are true."
+
+           or procedurally as
+
+               "To satisfy goal _P, satisfy goals _Q, _R and _S."
+
+
+                Clauses in  general  contain  variables.    Note   that
+           variables  in  different clauses are completely independent,
+           even if they have the same name  -- the  _l_e_x_i_c_a_l  _s_c_o_p_e   of
+           a   variable  is  limited to a single clause.  Each distinct
+           variable in a clause  should  be  interpreted   as  standing
+           for   an  arbitrary   entity,   or   value.    To illustrate
+           this, here are some examples of clauses   containing   vari-
+           ables,   with   possible  declarative  and  procedural read-
+           ings:
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    19
+
+
+                employed(X) :- employs(Y,X).
+
+                    "Any X is employed if any Y employs X."
+
+                    "To find whether a person X is employed,
+                    find whether any Y employs X."
+
+
+                derivative(X,X,1).
+
+                    "For any X, the derivative of X with respect to X is 1."
+
+                    "The goal of finding a derivative for the expression X with
+                    respect to X itself is satisfied by the result 1."
+
+
+                :- ungulate(X), aquatic(X).
+
+                    "Is it true, for any X, that X is an ungulate and X is
+                    aquatic?"
+
+                    "Find an X which is both an ungulate and aquatic."
+
+
+                In  a  program, the _p_r_o_c_e_d_u_r_e for a  particular  predi-
+           cate  is  the sequence of clauses in the program whose  head
+           goals  have  that   predicate  as  principal  functor.   For
+           example,  the  procedure  for  a 3-ary predicate concatenate
+           might consist of the two clauses
+
+               concatenate([X|L1],L2,[X|L3]) :-
+                   concatenate(L1,L2,L3).
+               concatenate([],L,L).
+
+           where concatenate(L1,L2,L3) means "the list L1  concatenated
+           with the list L2 is the list L3".
+
+                In Prolog, several predicates may have the  same   name
+           but  different arities.  Therefore,  when it is important to
+           specify a predicate unambiguously, the  form  <name>/<arity>
+           is used, for example concatenate/3.
+
+                Certain predicates are predefined  by  procedures  sup-
+           plied  by  the  Prolog  system.  Such  predicates are called
+           _e_v_a_l_u_a_b_l_e _p_r_e_d_i_c_a_t_e_s.
+
+                As we have seen, the goals in the body of a clause  are
+           linked  by the operator `,'  which  can  be  interpreted  as
+           conjunction ("and").    It  is sometimes convenient  to  use
+           an additional operator `;', standing for disjunction  ("or")
+           (The precedence of `;' is such that it dominates `,' but  is
+           dominated by `:-'.). An example is the clause.
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    20
+
+
+               grandfather(X,Z) :- (mother(X,Y); father(X,Y)), father(Y,Z).
+
+            which can be read as
+
+               "For any X, Y and Z, X has Z as a grandfather if either the mother
+               of X is Y or the father of X is Y, and the father of Y is Z."
+
+           Such  uses  of  disjunction  can  always  be  eliminated  by
+           defining  an  extra  predicate  -  for instance the previous
+           example is equivalent to
+
+               grandfather(X,Z) :- parent(X,Y), father(Y,Z).
+               parent(X,Y) :- mother(X,Y).
+               parent(X,Y) :- father(X,Y).
+
+           and so disjunction will not be  mentioned  further  in   the
+           following,   more  formal,  description  of the semantics of
+           clauses.
+
+           _3._2.  _D_e_c_l_a_r_a_t_i_v_e _a_n_d _P_r_o_c_e_d_u_r_a_l _S_e_m_a_n_t_i_c_s
+
+                The  semantics  of  definite  clauses  should be fairly
+           clear  from  the  informal  interpretations  already  given.
+           However  it  is  useful  to  have   a   precise  definition.
+           The  _d_e_c_l_a_r_a_t_i_v_e_s_e_m_a_n_t_i_c_s of definite clauses tells us which
+           goals can be considered true according to a  given  program,
+           and is defined recursively as follows.
+
+               A  goal  is  _t_r_u_e if it is the head of  some  clause
+               instance  and each of the goals (if any) in the body
+               of that clause _i_n_s_t_a_n_c_e is  true,  where an instance
+               of  a  clause (or term) is obtained by substituting,
+               for each of zero or more of  its  variables,  a  new
+               term for all occurrences of the variable.
+
+           For  example,  if  a  program contains  the  preceding  pro-
+           cedure for concatenate, then the declarative semantics tells
+           us that
+
+               concatenate([a],[b],[a,b])
+
+           is true, because this  goal  is  the  head  of   a   certain
+           instance  of  the  first clause for concatenate, namely,
+
+               concatenate([a],[b],[a,b]) :- concatenate([],[b],[b]).
+
+           and  we  know  that  the only  goal  in  the  body  of  this
+           clause instance is true, since it is an instance of the unit
+           clause  which  is  the  second  clause  for concatenate.
+
+                The  declarative  semantics makes no reference  to  the
+           sequencing  of goals within the body of a clause, nor to the
+           sequencing  of   clauses    within    a   program.      This
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    21
+
+
+           sequencing   information   is,   however,  very relevant for
+           the _p_r_o_c_e_d_u_r_a_l _s_e_m_a_n_t_i_c_s  which  Prolog  gives  to  definite
+           clauses.    The  procedural semantics  defines  exactly  how
+           the Prolog system will execute a goal,  and  the  sequencing
+           information  is  the  means  by  which the Prolog programmer
+           directs  the system  to  execute  his  program in a sensible
+           way.  The effect of executing a goal is to enumerate, one by
+           one, its true instances.  Here then is an  informal  defini-
+           tion of the procedural semantics.
+
+               To execute a goal, the system searches forwards from
+               the   beginning  of the program for the first clause
+               whose head _m_a_t_c_h_e_s or _u_n_i_f_i_e_s with the goal.     The
+               unification  process  finds  the most general common
+               instance of the two terms, which is unique if it ex-
+               ists.    If   a  match   is   found,   the  matching
+               clause  instance is then activated by  executing  in
+               turn,  from  left  to  right, each of the goals  (if
+               any)  in its  body.  If at any time the system fails
+               to  find  a match for a goal, it _b_a_c_k_t_r_a_c_k_s, that is
+               it rejects the  most  recently   activated   clause,
+               undoing   any   substitutions   made  by  the  match
+               with the head of the clause.   Next  it  reconsiders
+               the   original  goal  which  activated  the rejected
+               clause,  and  tries  to  find  a  subsequent  clause
+               which also matches the goal.
+
+           For example, if we execute the goal in the query
+
+               :- concatenate(X,Y,[a,b]).
+
+           we  find  that  it matches the head of the first clause  for
+           concatenate, with X instantiated to [a|X1]. The new variable
+           X1 is  constrained  by  the  new  goal  produced,  which  is
+           the recursive procedure call
+
+               concatenate(X1,Y,[b])
+
+           Again  this  goal  matches  the  first  clause,  instantiat-
+           ing X1 to [b|X2], and yielding the new goal
+
+               concatenate(X2,Y,[])
+
+           Now this goal will only match the second clause, instantiat-
+           ing both X2 and Y to []. Since there are no further goals to
+           be executed, we have a solution
+
+               X = [a,b]
+               Y = []
+
+           representing  a true instance of the original goal
+
+               concatenate([a,b],[],[a,b])
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    22
+
+
+           If this solution is rejected, backtracking will generate the
+           further solutions
+
+               X = [a]
+               Y = [b]
+
+               X = []
+               Y = [a,b]
+
+           in that order, by rematching, against the second clause  for
+           concatenate,  goals  already  solved  once  using  the first
+           clause.
+
+           _3._3.  _O_c_c_u_r_s _C_h_e_c_k
+
+                Prolog's unification does not have an   _o_c_c_u_r_s   _c_h_e_c_k,
+           i.e.  when  unifying  a variable  against  a term the system
+           does not check whether the  variable  occurs  in  the  term.
+           When  the  variable occurs in the term,  unification  should
+           fail, but  the  absence of the check means that the unifica-
+           tion succeeds, producing a _c_i_r_c_u_l_a_r _t_e_r_m.  Trying to print a
+           circular  term,  or  trying  to  unify  two circular  terms,
+           will cause an infinite loop and possibly make Prolog run out
+           of stack space.
+
+                The absence of the occur check  is   not   a   bug   or
+           design   oversight,   but   a  conscious   design  decision.
+           The reason for this decision is that  unification  with  the
+           occur  check  is at best linear on the sum of the  sizes  of
+           the  terms being  unified,   whereas   unification   without
+           the occur check is linear on the size of the smallest of the
+           terms  being  unified.   In   any   practical    programming
+           language,   basic  operations  are supposed to take constant
+           time.  Unification  against a variable should be thought  of
+           as the basic operation of Prolog, but this can take constant
+           time only if the occur check is omitted.   Thus the  absence
+           of  a occur check is essential to make Prolog into a practi-
+           cal programming language.  The inconvenience caused by  this
+           restriction  seems  in practice to be very slight.  Usually,
+           the restriction is only felt in toy programs.
+
+           _3._4.  _T_h_e _C_u_t _S_y_m_b_o_l
+
+                Besides the sequencing of  goals  and  clauses,  Prolog
+           provides  one  other  very important facility for specifying
+           control information.  This is the _c_u_t symbol, written   "!".
+           It  is  inserted in the program just like a goal, but is not
+           to be regarded as part of  the  logic  of  the  program  and
+           should  be ignored  as  far  as the declarative semantics is
+           concerned.
+
+                The  effect of the cut  symbol  is  as  follows.   When
+           first  encountered  as a goal, cut succeeds immediately.  If
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    23
+
+
+           backtracking should later return to the cut,  the effect  is
+           to  fail the _p_a_r_e_n_t _g_o_a_l, the goal which matched the head of
+           the clause containing the cut, and caused the clause  to  be
+           activated.   In  other  words, the cut operation commits the
+           system  to  all  choices  made  since  the parent  goal  was
+           invoked, and causes other alternatives to be discarded.  The
+           goals thus rendered  _d_e_t_e_r_m_i_n_a_t_e   are   the   parent   goal
+           itself,   any   goals  occurring   before   the  cut  in the
+           clause containing the cut, and any subgoals which were  exe-
+           cuted during the execution of those preceding goals.
+
+                For example, the procedure
+
+               member(X,[X|L]).
+               member(X,[Y|L]) :- member(X,L).
+
+           can be used to test whether a given term is in a  list,  and
+           the goal
+
+               :- member(b,[a,b,c]).
+
+           will succeed.  The procedure can also be  used  to   extract
+           elements from a list, as in
+
+               :- member(X,[d,e,f]).
+
+           With  backtracking this will successively return  each  ele-
+           ment  of  the  list.   Now suppose that the first clause had
+           been written instead:
+
+               member(X,[X|L]) :- !.
+
+           In this case, the above call would extract  only  the  first
+           element of  the  list (`d').  On backtracking, the cut would
+           immediately fail the whole procedure.
+
+                A procedure of the form
+
+               _x :- _p, !, _q.
+               _x :- _r.
+
+           is similar to
+
+               _x := if _p then _q else _r;
+
+           in an Algol-like language.
+
+                A cut discards all the alternatives  since  the  parent
+           goal,  even  when  the  cut  appears  within  a disjunction.
+           This  means  that  the normal  method  for   eliminating   a
+           disjunction by defining an extra predicate cannot be applied
+           to a disjunction containing a cut.
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    24
+
+
+           _4.  _D_e_b_u_g_g_i_n_g _F_a_c_i_l_i_t_i_e_s
+
+                This section   describes   the   debugging   facilities
+           that are available in C-Prolog.  The purpose of these facil-
+           ities is to provide  information  concerning   the   control
+           flow  of  your  program.    The  main features of the debug-
+           ging package are as follows:
+
+           -    The _P_r_o_c_e_d_u_r_e _b_o_x model of Prolog execution which  pro-
+                vides   a   simple  way  of  visualising control  flow,
+                especially during backtracking.  Control flow is viewed
+                at the procedure level,  rather  than  at  the level of
+                individual clauses.
+
+           -    The  ability to exhaustively trace your program  or  to
+                selectively  set  _s_p_y  _p_o_i_n_t_s.  Spy points allow you to
+                nominate interesting  procedures at which  the  program
+                is to pause so that you can interact.
+
+           -    The  wide  choice of control  and  information  options
+                available during debugging.
+
+                Much of the information in this chapter is similar  but
+           not identical to that of Chapter 8 of _P_r_o_g_r_a_m_m_i_n_g _i_n _P_r_o_l_o_g.
+
+           _4._1.  _T_h_e _P_r_o_c_e_d_u_r_e _B_o_x _C_o_n_t_r_o_l _F_l_o_w _M_o_d_e_l
+
+                During  debugging   the   interpreter   prints   out  a
+           sequence  of  goals  in  various  states of instantiation in
+           order to show the state the  program  has  reached   in  its
+           execution.     However,   in  order  to  understand  what is
+           occurring it is necessary to understand  when  and  why  the
+           interpreter  prints  out  goals.   As  in other  programming
+           languages,  key  points of interest are procedure entry  and
+           return,  but in Prolog there is the additional complexity of
+           backtracking.   One of  the  major  confusions  that  novice
+           Prolog  programmers  have  to  face  is the question of what
+           actually happens when a goal fails  and  the   system   sud-
+           denly  starts backtracking.  The Procedure Box model of Pro-
+           log execution views program control  flow in terms of  move-
+           ment  about  the  program text.  This model provides a basis
+           for the debugging mechanism in the interpreter, and  enables
+           the  user  to  view  the  behaviour of his program in a con-
+           sistent way.
+
+                Let us look at an example Prolog procedure:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    25
+
+
+                            *--------------------------------------*
+                    Call    |                                      |    Exit
+                 ---------> +  descendant(X,Y) :- offspring(X,Y).  + --------->
+                            |                                      |
+                            |  descendant(X,Z) :-                  |
+                 <--------- +     offspring(X,Y), descendant(Y,Z). + <---------
+                    Fail    |                                      |    BackTo
+                            *--------------------------------------*
+
+           The  first clause states that Y is a descendant of X if Y is
+           an  offspring of X, and the second clause states that Z is a
+           descendant of X if Y is  an offspring of  X and if  Z  is  a
+           descendant  of Y. In the diagram a box has been drawn around
+           the whole procedure and labelled arrows indicate the control
+           flow  in  and  out  of this box.  There are four such arrows
+           which we shall look at in turn.
+
+           Call
+
+                This arrow represents initial invocation  of  the  pro-
+                cedure.    When   a  descendant  goal   of   the   form
+                descendant(X,Y)  is  required to be satisfied,  control
+                passes through the Call _p_o_r_t of the descendant box with
+                the intention of matching a component clause  and  then
+                satisfying   any  subgoals   in   the  body   of   that
+                clause.    Notice that  this is independent of  whether
+                such  a  match  is  possible,  that is first the box is
+                called, and then the  attempt  to  match  takes  place.
+                Textually we can imagine moving to the code for descen-
+                dant when meeting  a  call to descendant in some  other
+                part of the code.
+
+           Exit
+
+                This arrow represents a successful return from the pro-
+                cedure.   This  occurs   when   the  initial  goal  has
+                been unified with one of the component clauses and  any
+                subgoals  have  been  satisfied.    Control now  passes
+                out of the Exit port of the descendant box.   Textually
+                we  stop  following the code for descendant and go back
+                to the  place we came from.
+
+           BackTo
+
+                This arrow indicates that a subsequent goal has  failed
+                and  that  the system has come back to this goal in  an
+                attempt  to match  the  goal  against  another  clause.
+                Control  passes  through the BackTo  port  of  the des-
+                cendant box in an attempt to rematch the original  goal
+                with an alternative  clause and  then  try  to  satisfy
+                any subgoals  in  the body of this new clause.   Textu-
+                ally  we  follow  the  code backwards  up  the  way  we
+                came  looking  for new  ways  of succeeding,   possibly
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    26
+
+
+                dropping   down   on  to  another  clause and following
+                that if necessary. Note  that  this  is  somewhat  less
+                informative than the Redo port described in _P_r_o_g_r_a_m_m_i_n_g
+                _i_n _P_r_o_l_o_g, because it does not show  the  path  in  the
+                program from a failed goal back to the first goal where
+                alternative clauses exist, but only this goal.
+
+           Fail
+
+                This arrow represents a failure of the  initial   goal,
+                which   might  occur   if  no  clause is matched, or if
+                subgoals are never satisfied, or if any  solution  pro-
+                duced  is always rejected by later processing.  Control
+                now passes out of the Fail port of the descendant   box
+                and  the  system  continues to backtrack.  Textually we
+                move back to the code which called this  procedure  and
+                keep  moving  backwards up  the code looking for choice
+                points.
+
+                In  terms of this model, the information we  get  about
+           the  procedure  box  is  only the control flow through these
+           four ports.  This means that at  this  level   we  are   not
+           concerned  with   which   clause   matches,   and   how  any
+           subgoals are satisfied, but rather we only wish to know  the
+           initial  goal and  the final outcome.  However,  it  can  be
+           seen  that whenever we are trying to satisfy subgoals,  what
+           we  are  actually  doing  is  passing  through the  ports of
+           _t_h_e_i_r respective  boxes.    If  we  were   to  follow  this,
+           then  we  would  have complete information about the control
+           flow inside the procedure box.
+
+           Note that the box we have drawn round the  procedure  should
+           really be seen as an _i_n_v_o_c_a_t_i_o_n _b_o_x.  That is, there will be
+           a  different  box  for  each different invocation   of   the
+           procedure.     Obviously,   with  something like a recursive
+           procedure,  there  will  be many different Calls  and  Exits
+           in the control flow, but these will be for different invoca-
+           tions.  Since this  might get  confusing each invocation box
+           is given a unique integer identifier.
+
+           _4._2.  _B_a_s_i_c _D_e_b_u_g_g_i_n_g _P_r_e_d_i_c_a_t_e_s
+
+                The   interpreter   provides   a   range  of  evaluable
+           predicates  for  control  of  the debugging facilities.  The
+           most basic predicates are as follows:
+
+           debug
+
+                Switches _d_e_b_u_g _m_o_d_e on.  (It  is  initially  off.)   In
+                order   for  the full  range  of  control  flow  infor-
+                mation  to  be available it is necessary to  have  this
+                on  from  the  start.     When  it  is  off  the system
+                does   not  remember   invocations   that   are   being
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    27
+
+
+                executed.   (This is because it  is expensive  and  not
+                required  for  normal running  of  programs.)  You  can
+                switch debug mode on in the middle of execution, either
+                from within your program or after  an  interrupt   (see
+                trace  below),   but  information  prior to  this  will
+                just  be unavailable.
+
+           nodebug
+
+                switches debug mode off.  If there are any  spy  points
+                set then they will be removed.
+
+           debugging
+
+                prints  onto  the  terminal  information   about    the
+                current  debugging state.   It shows whether debug mode
+                is on or off and gives various other information to  be
+                described later.
+
+           _4._3.  _T_r_a_c_i_n_g
+
+                The following evaluable predicate may be used  to  com-
+           mence an  exhaustive trace of a program.
+
+           trace
+
+                Switches  debug  mode on, if it is not on already,  and
+                ensures  that  the next time control enters a procedure
+                box,  a  message  will  be produced  and  you  will  be
+                asked to interact.
+
+                When stopped at a goal being traced, you have a  number
+           of options which will be detailed later.  In particular, you
+           can just type   END-OF-LINE   (carriage-return)   to   creep
+           (or  single-step)   into   your  program. If you continue to
+           creep through your program you will see every entry and exit
+           to/from  every  invocation  box.  However,  you will  notice
+           that  you  are only given the  opportunity  to  interact  on
+           Call  and  BackTo  ports,  i.e.  a single creep decision may
+           take  you through  several  Exit ports   or   several   Fail
+           ports.     Normally  this is desirable, as it would be tedi-
+           ous to go through all those ports step by step.  However, if
+           it  is  not what you want, the following evaluable predicate
+           gives full  control  over   the   ports  at  which  you  are
+           prompted.
+
+           leash(_M_o_d_e)
+
+                Sets the _l_e_a_s_h_i_n_g _m_o_d_e to _M_o_d_e, where _M_o_d_e can  be  one
+                of the following
+
+
+                    full    prompt on Call, Exit, BackTo and Fail
+                    tight   prompt on Call, BackTo and Fail
+                    half    prompt on Call and BackTo
+                    loose   prompt on Call
+                    off     never prompt
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    28
+
+
+                or any other combination of ports as  described  later.
+                The  initial  _l_e_a_s_h_i_n_g _m_o_d_e is `half'.
+
+           _4._4.  _S_p_y _P_o_i_n_t_s
+
+                For programs of any size, it is clearly impractical  to
+           creep through the entire program.  Spy points make it possi-
+           ble to stop the program whenever it  gets  to  a  particular
+           procedure  which  is of interest.  Once there,  one  can set
+           further spy points  in  order  to  catch  the control flow a
+           bit further on, or one can start creeping.
+
+                Setting a spy-point on a procedure indicates  that  you
+           wish  to  see  all control flow  through  the  various ports
+           of its invocation boxes.  When control  passes  through  any
+           port of a procedure with a spy-point set on it, a message is
+           output and the user is asked to  interact.   Note  that  the
+           current  mode  of  leashing does not affect spy points: user
+           interaction is requested on _e_v_e_r_y port.
+
+                Spy points are set and removed by the following  evalu-
+           able predicates which are also standard operators:
+
+           spy _X
+
+                Sets  spy points  on  all the procedures given by _X.  _X
+                is  either  a single predicate specification, or a list
+                of  such  specifications.  A  predicate   specification
+                is   either of the form <atom>/<arity>, which means the
+                procedure with the name  <atom>   and   an   arity   of
+                <arity>   (for  example   member/2,  foo/0,  hello/27),
+                or it is of the form <atom>, which means all  the  pro-
+                cedures  with  the   name  <atom>  that currently  have
+                clauses in the data-base  (e.g.  member,  foo,  hello).
+                This  latter  form  may  refer  to  multiple procedures
+                which  have  the same  name   but   different  arities.
+                If you use the form <atom> but there are no clauses for
+                this predicate (of any  arity)  then  nothing  will  be
+                done.   If  you  really  want  to  place  a  spy  point
+                on  a currently  non-existent  procedure, then you must
+                use  the full form <atom>/<arity>; you will get a warn-
+                ing message in this  case.    If you   set   some   spy
+                points   when   debug  mode  is  off  then  it  will be
+                automatically switched on.
+
+           nospy _X
+
+                This reverses the effect of spy _X: all  the  procedures
+                given by  _X will have previously set spy points removed
+                from them.
+
+                The  options  available when you arrive at a  spy-point
+           are described below.
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    29
+
+
+           _4._5.  _F_o_r_m_a_t _o_f _D_e_b_u_g_g_i_n_g _M_e_s_s_a_g_e_s
+
+                We will now look at the exact  format  of  the  message
+           output by the system at a port.  All trace messages are out-
+           put to the terminal regardless  of  where the current   out-
+           put  is  directed.  (This allows you to trace programs while
+           they are performing file I/O.)  The basic format is as  fol-
+           lows:
+
+               ** (23) 6 Call : foo(hello,there,_123) ?
+
+           The "**" indicates that this is  a  spy-point.     If   this
+           port  is  not  for a procedure  with  a  spy-point set, then
+           there will be two spaces there instead.  If this port is the
+           requested  return  from a  Skip  then  the second  character
+           becomes ">".  This gives four possible combinations:
+
+
+               "**"   This is a spy-point.
+               "*>"
+
+                      This  is a spy-point, and you also did a Skip last time you were in
+                      this box.
+               " >"
+
+                      This is not a spy-point, but you did a Skip last time you  were  in
+                      this box.
+               "  "   This is not a spy-point.
+
+
+
+           The  number  in  parentheses  is   the   unique   invocation
+           identifier.  This is continuously incrementing regardless of
+           whether or not you  are  actually  seeing  the   invocations
+           (provided  that  debug mode is on).  This number can be used
+           to cross correlate the trace messages for the various ports,
+           since  it   is   unique  for  every  invocation.    It  will
+           also  give  an indication of the number of  procedure  calls
+           made  since  the  start  of  the  execution.  The invocation
+           counter starts  again for every fresh execution  of  a  com-
+           mand, and it is also reset when retries (see later) are per-
+           formed.
+
+                The number following this is the current   depth,  that
+           is,  the  number  of direct ancestors this goal has.
+
+                The next word  specifies  the  particular  port  (Call,
+           Exit, BackTo or Fail).
+
+                The  goal  is  then  printed  so that you  can  inspect
+           its current instantiation state.
+
+                The final "?" is the prompt indicating that you  should
+           type   in   one  of the option  codes allowed (see next sec-
+           tion).  If this particular port is unleashed then  you  will
+           obviously not get this prompt since you have specified  that
+           you do not wish to interact at this point.
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    30
+
+
+                Notice  that  not  all  procedure  calls  are   traced;
+           there   are   a  few  basic  procedures which have been made
+           invisible since it is more  convenient not   to  see   them.
+           These  include  all  primitive I/O evaluable predicates (for
+           example get, put, read, write), all basic control structures
+           (that  is,  `,',  `;',  `->')   and   all debugging  control
+           evaluable  predicates  (for  instance,  debug,  spy,  leash,
+           trace).  This means that you will never  see  messages  con-
+           cerning  these  predicates during debugging.
+
+           _4._6.  _O_p_t_i_o_n_s _A_v_a_i_l_a_b_l_e _d_u_r_i_n_g _D_e_b_u_g_g_i_n_g
+
+                This   section   describes   the   particular   options
+           that  are available when the system prompts you after print-
+           ing out a debugging message.  All the options are one letter
+           mnemonics.     They   are   read  from the terminal with any
+           blanks being completely ignored up to the next end of  line.
+           The _c_r_e_e_p option needs only the new line.
+
+           The  only  option  which you really have to remember is "h".
+           This  provides  help  in  the  form of the following list of
+           available options:
+
+
+               END-OF-LINE   creep         a       abort
+               c             creep         f       fail
+               l             leap          b       break
+               s             skip          h       help
+               r             retry         r <n>   retry goal <n>
+               q             quasi-skip    n       nodebug
+               g             goal stack    [       read clauses from terminal
+               e             exit Prolog
+
+
+           The first three options are the basic control decisions:
+
+           c, END-OF-LINE: Creep
+
+                Causes the interpreter to single-step to the very  next
+                port  and  print  a  message.     Then   if the port is
+                leashed the user is prompted for  further  interaction.
+                Otherwise  it  continues creeping.  If leashing is off,
+                creep is the same as leap (see below)  except  that   a
+                complete trace is printed on the terminal.
+
+           l: Leap
+
+                causes  the  interpreter  to resume running  your  pro-
+                gram,  only  stopping  when  a spy-point is reached (or
+                when the program terminates).   Leaping can   thus   be
+                used   to   follow   the   execution  at a higher level
+                than exhaustive tracing.  All you need  to  do  is   to
+                set  spy points  on  an evenly  spread set of pertinent
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    31
+
+
+                procedures, and then follow the  control  flow  through
+                these by leaping from one to the other.
+
+           s: Skip
+
+                Skip is only valid for Call and  BackTo   ports.     It
+                skips   over  the  entire execution  of  the procedure.
+                That is, you will not see anything until control  comes
+                back  to  this  procedure (at either the Exit  port  or
+                the Fail   port).     Skip   is   particularly   useful
+                while creeping since it guarantees that control will be
+                returned  after  the   (possibly   complex)   execution
+                within  the  box.    If you skip then no message at all
+                will appear until control returns.  This includes calls
+                to   procedures   with  spy  points  set;  they will be
+                masked out during the skip.  There  are  two  ways   of
+                overriding this :  there is a Quasi-skip which does not
+                ignore spy points, and the "t" option after  an  inter-
+                rupt   will   disable  the masking.  Normally, however,
+                this masking is just what is required!
+
+           q: Quasi-skip
+
+                Is  like Skip except that it  does  not  mask  out  spy
+                points.   If  there is a spy-point within the execution
+                of the goal then  control  returns  at this  point  and
+                any   action  can be performed there.  The initial skip
+                still guarantees an   eventual   return   of   control,
+                though,  when  the internal execution is finished.
+
+           f: Fail
+
+                Transfers to the Fail port of the  current  box.   This
+                puts  your execution in a position where it is about to
+                backtrack  out  of  the  current invocation,  that  is,
+                you have manually failed the initial goal.
+
+           r: Retry
+
+                Transfers to the Call port of the current goal,  or  if
+                given  a  numeric  argument  _n, to the Call port of the
+                invocation numbered _n.  IF the invocation being retried
+                has been deleted by the cut control primitive, the most
+                recent active invocation before it will be retried.  If
+                _n  is  out of range, the current invocation is retried.
+                This option is extremely useful to go back to  an  ear-
+                lier state of computation if some point of interest was
+                overshot in a debugging session. Note however that side
+                effects, such as database modification, are not undone.
+
+           g: Goal Stack
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    32
+
+
+                Shows the goal that called the current one, and the one
+                that  called it, and so on, that is, the stack of pend-
+                ing goals. Goals are printed one  per  line,  from  the
+                most  recent to the least recent.  Each goal is labeled
+                by its recursion level _l, its invocation number  _i  and
+                the  ordinal position _p of the clause currently used to
+                solve the goal.
+
+           a: Abort
+
+                Causes  an  abort  of  the current execution.  All  the
+                execution states built so far are destroyed and you are
+                put right back at the top  level of  the   interpreter.
+                (This  is  the same as the evaluable predicate abort.)
+
+           [: Read clauses from terminal
+
+                starts reading clauses typed by the user as if doing  a
+                _c_o_n_s_u_l_t(_u_s_e_r).    An   END-OF-INPUT   returns   to  the
+                debugger.
+
+           e: Exit from Prolog
+
+                causes an irreversible exit  from  the  Prolog  system.
+                (This is the same as the evaluable predicate halt.)
+
+           h: Help
+
+                Displays the table of options given above.
+
+           b: Break
+
+                Calls  the  evaluable  predicate  break,  thus  putting
+                you  at interpreter top level with the execution so far
+                sitting underneath you.   When   you  end   the   break
+                with   the   END-OF-INPUT   character,   you   will  be
+                reprompted at the port at which  you  broke.   The  new
+                execution is completely  separate  from  the  suspended
+                one;  the  invocation numbers will start again  from  1
+                during  the  break.   Debug mode is not switched off as
+                you call the break,  but  if  you  do  switch   it  off
+                then  it  will  be  re-switched  on when you finish the
+                break and go back to the old execution.   However,  any
+                changes to the leashing or to spy points will remain in
+                effect.
+
+           n:  Nodebug
+
+                Turns off debug mode.  Notice that this is the  correct
+                way  to  switch  debugging   off at a trace point.  You
+                cannot use the "b" option because  it  always  restores
+                debug mode upon return.
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    33
+
+
+           _4._7.  _R_e_c_o_n_s_u_l_t_i_n_g _d_u_r_i_n_g _D_e_b_u_g_g_i_n_g
+
+                It is possible, and sometimes useful,  to  reconsult  a
+           file  whilst  in the middle of  a  program  execution.  How-
+           ever this can lead to unexpected behaviour under the follow-
+           ing  circumstances:  a  procedure has been successfully exe-
+           cuted; it  is subsequently   re-defined   by  a   reconsult,
+           and   is   later   re-activated   by backtracking.  When the
+           backtracking occurs,  all  the  new  clauses  for  the  pro-
+           cedure appear to the interpreter to be potential alternative
+           solutions, even though  identical  clauses  may already have
+           been  used.  Thus large amounts of (unwanted) activity takes
+           place on backtracking.  The problem does not arise if you do
+           the  reconsult when you are at the Call  port  of  the  pro-
+           cedure  to  be re-defined.
+
+           _5.  _E_v_a_l_u_a_b_l_e _P_r_e_d_i_c_a_t_e_s
+
+                This section describes  all  the  evaluable  predicates
+           available  in  C-Prolog.   These  predicates are provided in
+           advance by the system and they cannot be  redefined  by  the
+           user.   Any  attempt  to add clauses or delete clauses to an
+           evaluable predicate fails with an error message, and  leaves
+           the  evaluable predicate unchanged.  The C-Prolog provides a
+           fairly wide range of evaluable  predicates  to  perform  the
+           following tasks:
+
+               Input/Output
+                  Reading-in programs
+                  Opening and closing files
+                  Reading and writing Prolog terms
+                  Getting and putting characters
+               Arithmetic
+               Affecting the flow of the execution
+               Classifying and operating on Prolog terms (meta-logical facilities)
+               Sets
+               Term Comparison
+               Manipulating the Prolog program database
+               Manipulating the additional indexed database
+               Debugging facilities
+               Environmental facilities
+
+           The evaluable predicates will be described according to this
+           classification.  Appendix  I contains a complete list of the
+           evaluable predicates.
+
+           _5._1.  _I_n_p_u_t _a_n_d _O_u_t_p_u_t
+
+                A total of 15 I/O streams may be open at any  one  time
+           for input and output.  This includes a stream that is always
+           available for input and output to the  user's  terminal.   A
+           stream  to  a file _F is opened for input by the first see(_F)
+           executed.   _F  then  becomes  the  current   input   stream.
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    34
+
+
+           Similarly,  a  stream  to file _H is opened for output by the
+           first tell(_H) executed.  _H then becomes the  current  output
+           stream.   Subsequent calls to see(_F) or to tell(_H) make _F or
+           _H the current input or  output  stream,  respectively.   Any
+           input or output is always to the current stream.
+
+                When no input or output stream has been specified,  the
+           standard ersatz  file  `user',  denoting  the  user's termi-
+           nal, is utilised for both.  When the terminal is waiting for
+           input on a new line, a prompt will be displayed as follows:
+
+
+               "| ?- "   interpreter waiting for command
+               "|    "   interpreter wating for command continuation line
+               "| "      consult(user) wating for continuation line
+               "|:"      default for waiting for other user input
+
+
+           When the current input (or output)  stream  is  closed,  the
+           user's  terminal  becomes  the  current  input  (or  output)
+           stream.
+
+                The only file that  can  be  simultaneously   open  for
+           input and output is the ersatz file `user'.
+
+                A file is referred to by its name, _w_r_i_t_t_e_n _a_s _a_n  _a_t_o_m,
+           e.g.
+
+               myfile
+               'F123'
+               data_lst
+               'tom/greeks'
+
+
+                All I/O errors normally cause an abort, except for  the
+           effect  of  the  evaluable  predicate  nofileerrors decribed
+           below.
+
+                End of file is signalled on the user's terminal by typ-
+           ing  the  END-OF-INPUT character.  Any  more  input requests
+           for a file whose  end  has  been  reached  causes  an  error
+           failure.
+
+           _5._1._1.  _R_e_a_d_i_n_g-_i_n _P_r_o_g_r_a_m_s
+
+           consult(_F)
+
+                Instructs the interpreter to read-in the program  which
+                is  in file _F.  When  a directive is read it is immedi-
+                ately executed.  When a clause is read it is put  after
+                any  clauses  already  read by the interpreter for that
+                procedure.
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    35
+
+
+           reconsult(_F)
+
+                Like consult  except   that   any   procedure   defined
+                in    the reconsulted  file erases any clauses for that
+                procedure already present in the  interpreter.   recon-
+                sult  makes it possible to amend a program without hav-
+                ing to restart from scratch and consult all  the  files
+                which make  up  the  program.
+
+           [_F_i_l_e|_F_i_l_e_s]
+
+                This is a shorthand way of consulting or reconsulting a
+                list  of files.  A file name may optionally be preceded
+                by the  operator  `-'  to  indicate   that   the   file
+                should    be    reconsulted    rather   than consulted.
+                Thus
+
+                    | ?- [file1,-file2,file3].
+
+                is merely a shorthand for
+
+                    | ?- consult(file1), reconsult(file2), consult(file3).
+
+
+           _5._1._2.  _F_i_l_e _H_a_n_d_l_i_n_g
+
+           see(_F)
+
+                File _F becomes the current input stream.
+
+           seeing(_F)
+
+                _F is unified with the name of the current input file.
+
+           seen
+
+                Closes the current input stream.
+
+           tell(_F)
+
+                File _F becomes the current output stream.
+
+           telling(_F)
+
+                _F is unified with the name of the current output file.
+
+           told
+
+                Closes the current output stream.
+
+           close(_F)
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    36
+
+
+                File _F, currently open for input or output, is closed.
+
+           fileerrors
+
+                Undoes the effect of nofileerrors.
+
+           nofileerrors
+
+                After a  call  to  this  predicate,   the   I/O   error
+                conditions  "incorrect  file name ...", "can't see file
+                ...", "can't tell file ..." and "end of file ..." cause
+                a  call to fail instead of  the default  action,  which
+                is to type an error message and then call abort.
+
+           exists(_F)
+
+                Succeeds if the file F exists.
+
+           rename(_F,_N)
+
+                If File _F is renamed to _N.  If _N  is `[]', the file  is
+                deleted.   If  _F  was  a  currently  open stream, it is
+                closed first.
+
+           _5._1._3.  _I_n_p_u_t _a_n_d _O_u_t_p_u_t _o_f _T_e_r_m_s
+
+           read(_X)
+
+                The next term, delimited by a full stop  (i.e.   a  "."
+                followed  by a carriage-return or  a  space),  is  read
+                from the current input stream and unified with  _X.  The
+                syntax  of the term must accord  with  current operator
+                declarations.  If a call read(_X) causes the end of  the
+                current  input stream to be reached, _X is unified  with
+                the  atom `end_of_file'.  Further  calls  to  read  for
+                the same stream will then cause an error failure.
+
+           write(_X)
+
+                The term _X is written  to  the  current  output  stream
+                according  to operator declarations in force.
+
+           display(_X)
+
+                The term _X is displayed on  the  terminal  in  standard
+                parenthesised prefix notation.
+
+           writeq(_T_e_r_m)
+
+                Similar to write(_T_e_r_m), but  the  names  of  atoms  and
+                functors  are quoted where necessary to make the result
+                acceptable as input to read.
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    37
+
+
+           print(_T_e_r_m)
+
+                Print _T_e_r_m onto the  current  output.   This  predicate
+                provides a handle for user defined pretty printing.  If
+                _T_e_r_m  is  a  variable  then  it   is   written,   using
+                write(_T_e_r_m).   If  _T_e_r_m  is non-variable then a call is
+                made to the user defined procedure  portray(_T_e_r_m).   If
+                this  succeeds  then  it  is assumed that _T_e_r_m has been
+                output.  Otherwise print is equivalent to write.
+
+           _5._1._4.  _C_h_a_r_a_c_t_e_r _I_n_p_u_t/_O_u_t_p_u_t
+
+           nl
+
+                A new line is started on the current output stream.
+
+           get0(_N)
+
+                _N is the ASCII code of  the  next  character  from  the
+                current   input  stream.  If  the  current input stream
+                reaches its end of file, the ASCII character  code  for
+                control-Z is returned and the stream closed.
+
+           get(_N)
+
+                _N is the ASCII code of the  next  non-blank   printable
+                character  from  the  current  input stream. It has the
+                same behaviour as get0 on end of file.
+
+           skip(_N)
+
+                Skips to just past the next  ASCII  character  code   _N
+                from   the  current  input stream.  _N may be an integer
+                expression.  Skipping past the end of  file  causes  an
+                error.
+
+           put(_N)
+
+                ASCII character code _N is output to the current  output
+                stream.  _N may be an integer expression.
+
+           tab(_N)
+
+                _N spaces are output to the current  output  stream.   _N
+                may  be  an  integer expression.
+
+           _5._2.  _A_r_i_t_h_m_e_t_i_c
+
+                Arithmetic is performed by  evaluable predicates  which
+           take   as arguments   _a_r_i_t_h_m_e_t_i_c _e_x_p_r_e_s_s_i_o_n_s   and  _e_v_a_l_u_a_t_e
+           them.  An  arithmetic expression  is  a  term   built   from
+           _e_v_a_l_u_a_b_l_e  _f_u_n_c_t_o_r_s,  numbers  and variables.  At  the  time
+           of evaluation, each variable  in  an  arithmetic  expression
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    38
+
+
+           must be bound to a number or to  an  arithmetic  expression.
+           The result of evaluation will always be converted back to an
+           integer if possible.
+
+                Each evaluable functor stands for an arithmetic  opera-
+           tion.   The  adjective  "integer"  in the descriptions below
+           means that the operation only makes sense for integers,  and
+           will fail for floating point numbers.
+
+                Because arithmetic expressions are compound terms, they
+           use  up  storage that is only recovered on backtracking. The
+           evaluable predicate expanded_exprs can be used to avoid this
+           overhead  by  preexpanding arithmetic expressions into calls
+           to arithmetic evaluation  predicates.  However,  this  makes
+           program read-in slower and clauses bigger.
+
+                In  general,  an  arithmetic  operation  that  combines
+           integers  and  floating point numbers will return a floating
+           point number.  However, if the result  is  integral,  it  is
+           converted  back  to  integer  representation,  and  the same
+           applies to numbers read in by the reader. Thus, the goal
+
+               | ?- p(2.0).
+
+           will succeed with the clause
+
+               p(2).
+
+           and the result of the query
+
+               | ?- X is 2*1.5.
+
+           is
+
+               X = 5
+
+
+                Numbers may be integers
+
+               -33  0  9999
+
+           or floating point numbers
+
+               1.333  -2.6E+7 0.555E-2
+
+
+                Note that the decimal "." cannot be confused  with  the
+           end  of  clause because the latter must be followed by blank
+           space (space, tab or END-OF-LINE).  However, if an  operator
+           "."  is declared as infix, it will only be possible to apply
+           it to two numbers if they are separated by blank space  from
+           the operator.
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    39
+
+
+                The evaluable  functors  are  as   follows,   where   _X
+           and  _Y  are arithmetic expressions.
+
+           _X+_Y
+
+                addition
+
+           _X-_Y
+
+                subtraction
+
+           _X*_Y
+
+                multiplication
+
+           _X/_Y
+
+                division
+
+           _X//_Y
+
+                integer division
+
+           _X mod _Y
+
+                _X (integer) modulo _Y
+
+           -_X
+
+                unary minus
+
+           exp(_X)
+
+                exponential function
+
+           log(_X)
+
+                natural logarithm
+
+           log10(_X)
+
+                base 10 logarithm
+
+           sqrt(_X)
+
+                square root
+
+           sin(_X)
+
+                sine
+
+           cos(_X)
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    40
+
+
+                cosine
+
+           tan(_X)
+
+                tangent
+
+           asin(_X)
+
+                arc sine
+
+           acos(_X)
+
+                arc cosine
+
+           atan(_X)
+
+                arc tangent
+
+           floor(_X)
+
+                the largest integer not greater than _X
+
+           _X^_Y
+
+                _X to the power _Y
+
+           _X/\_Y
+
+                integer bitwise conjunction
+
+           _X/_Y
+
+                integer bitwise disjunction
+
+           _X<<_Y
+
+                integer bitwise left shift of _X by _Y places
+
+           _X>>_Y
+
+                integer bitwise right shift of _X by _Y places
+
+           \_X
+
+                integer bitwise negation
+
+           cputime
+
+                CPU time since C-Prolog was started, in seconds.
+
+           heapused
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    41
+
+
+                Heap space in use, in bytes.
+
+           [_X]
+
+                (a list of just one element) evaluates to _X if _X is  an
+                integer.   Since  a  quoted  string  is  just a list of
+                integers, this allows a quoted character to be used  in
+                place of its ASCII code; e.g. "A" behaves within arith-
+                metic expressions as the integer 65.
+
+                The arithmetic evaluable  predicates  are  as  follows,
+           where  _X  and  _Y stand for arithmetic expressions, and _Z for
+           some term.  Note that this means that is only evaluates  one
+           of its arguments as an arithmetic expression (the right-hand
+           side one), whereas all the  comparison  predicates  evaluate
+           both their arguments.
+
+           _Z is _X
+
+                Arithmetic expression _X is evaluated and the result, is
+                unified with _Z. Fails if _X is not an arithmetic expres-
+                sion.
+
+           _X =:= _Y
+
+                The values of _X and _Y are equal.
+
+           _X == _Y
+
+                The values of _X and _Y are not equal.
+
+           _X < _Y
+
+                The value of _X is less than the value of _Y.
+
+           _X > _Y
+
+                The value of _X is greater than the value of _Y.
+
+           _X =< _Y
+
+                The value of _X is less than or equal to the value of _Y.
+
+           _X >= _Y
+
+                The value of _X is greater than or equal to the value of
+                _Y.
+
+           expanded_exprs(_O_l_d,_N_e_w)
+
+                Unifies _O_l_d to the  current  value  of  the  expression
+                expansion  flag, and sets the value of the flag to _N_e_w.
+                The possible values of the flag are `off' (the default)
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    42
+
+
+                for not expanding arithmetic expressions into procedure
+                calls, and `on' to do the expansion.
+
+           _5._3.  _C_o_n_v_e_n_i_e_n_c_e
+
+           _P , _Q
+
+                _P and _Q.
+
+           _P ; _Q
+
+                _P or _Q.
+
+           true
+
+                Always succeeds.
+
+           _X = _Y
+
+                Defined as if by the clause " Z=Z. ", that is _X  and  _Y
+                are unified.
+
+           _5._4.  _E_x_t_r_a _C_o_n_t_r_o_l
+
+           !
+
+                Cut (discard) all choice points made since  the  parent
+                goal started execution.
+
+           \+ _P
+
+                If  the  goal  _P  has  a  solution,  fail,    otherwise
+                succeed.   It  is defined as if by
+
+                    \+(P) :- P, !, fail.
+                    \+(_).
+
+
+           _P -> _Q ; _R
+
+                Analogous to
+
+                    "if _P then _Q else _R"
+
+                i.e.  defined as if by
+
+                    P -> Q; R :- P, !, Q.
+                    P-> Q; R :- R.
+
+
+           _P -> _Q
+
+
+
+
+
+
+
+
+
+
+
+
+_.
+           C-Prolog User's Manual                                    43
+
+
+                When occurring other  than  as  one  of  the   alterna-
+                tives  of  a disjunction, is equivalent to
+
+                    _P -> _Q; fail.
+
+
+           repeat
+
+                Generates  an   infinite   sequence   of   backtracking
+                choices.   It behaves as if defined by the clauses:
+
+                    repeat.
+                    repeat :- repeat.
+
+
+           fail
+
+                Always fails.
+
+           _5._5.  _M_e_t_a-_L_o_g_i_c_a_l
+
+           var(_X)
+
+                Tests whether _X is currently instantiated  to  a  vari-
+                able.
+
+           nonvar(_X)
+
+                Tests whether _X is currently  instantiated  to  a  non-
+                variable term.
+
+           atom(_X)
+
+                Checks that _X is  currently  instantiated  to  an  atom
+                (i.e.    a  non-variable  term of arity 0, other than a
+                number or database reference).
+
+           number(_X)
+
+                Checks that _X is currently instantiated to a number.
+
+           integer(_X)
+
+                Checks that _X is currently instantiated to an integer.
+
+           atomic(_X)
+
+                Checks that _X is currently  instantiated  to  an  atom,
+                number or database reference.
+
+           primitive(_X)
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    44
+
+
+                Checks that _X is currently instantiated to a number  or
+                database reference.
+
+           db_reference(_X)
+
+                Checks that _X is currently instantiated to  a  database
+                reference.
+
+           functor(_T,_F,_N)
+
+                The principal functor of term _T has name _F and arity _N,
+                where   _F  is   either  an  atom or, provided _N is 0, a
+                number. Initially, either _T must be instantiated  to  a
+                non-variable,  or _F and _N  must be   instantiated   to,
+                respectively,  either  an  atom   and   a  non-negative
+                integer  or  an  integer and 0. If these conditions are
+                not satisfied, an error message is given.  In the  case
+                where  _T  is  initially instantiated to a variable, the
+                result of the  call  is to  instantiate  _T  to the most
+                general term having the principal functor indicated.
+
+           arg(_I,_T,_X)
+
+                Initially, _I must be instantiated to a positive integer
+                and _T  to a  compound  term.  The result of the call is
+                to unify _X with the _Ith  argument  of  term   _T.   (The
+                arguments   are  numbered from  1 upwards.) If the ini-
+                tial conditions are not satisfied or _I is out of range,
+                the call merely fails.
+
+           _X =.. _Y
+
+                _Y is a list whose head is the atom corresponding to the
+                principal  functor  of _X and whose tail is the argument
+                list of that functor in _X. E.g.
+
+                    product(0,N,N-1) =.. [product,0,N,N-1]
+
+                    N-1 =.. [-,N,1]
+
+                    product =.. [product]
+
+                If _X is instantiated to a  variable,  then  _Y  must  be
+                instantiated  either  to  a  list of determinate length
+                whose head is an atom, or to a list of length  1  whose
+                head is a number.
+
+           name(_X,_L)
+
+                If _X is an atom or a number then _L is  a  list  of  the
+                ASCII codes of the characters comprising the name of _X.
+                E.g.
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    45
+
+
+                    name(product,[112,114,111,100,117,99,116])
+
+                i.e.  name(product,"product")
+
+                    name(1976,[49,57,55,54])
+
+                    name(hello,[104,101,108,108,111])
+
+                    name([],"[]")
+
+                If _X is instantiated to a variable, _L must  be  instan-
+                tiated to a list of ASCII character codes.  E.g.
+
+                    | ?- name(X,[104,101,108,108,111])).
+
+                    X = hello
+
+                    | ?- name(X,"hello").
+
+                    X = hello
+
+
+           call(_X)
+
+                If _X is instantiated to a term which would  be  accept-
+                able  as  body of  a  clause,  the goal call(_X) is exe-
+                cuted exactly as if that  term  appeared  textually  in
+                place of the call(_X), except that any  cut ("!") occur-
+                ring in _X will remove only those choice  points  in  _X.
+                If _X is not  instantiated  as described above, an error
+                message is printed and call fails.
+
+           _X
+
+                (where _X is a variable) Exactly the same as call(_X).
+
+           _5._6.  _S_e_t_s
+
+                When  there  are  many solutions to a problem, and when
+           all   those   solutions  are  required   to   be   collected
+           together,  this  can  be   achieved   by   repeatedly  back-
+           tracking  and gradually building up a list of the solutions.
+           The following evaluable predicates are provided to  automate
+           this process.
+
+           setof(_X,_P,_S)
+
+           Read this as "_S is the set of all instances of _X  such  that
+           _P   is provable,  where  that  set  is non-empty".  The term
+           _P specifies a goal or goals as in call(_P). _S  is  a  set  of
+           terms represented as  a list  of those terms, without dupli-
+           cates, in the standard order for terms  (see  Section  5.3).
+           If  there  are  no  instances of _X such  that _P is satisfied
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    46
+
+
+           then the predicate fails.
+
+           The  variables  appearing  in the term _X should  not  appear
+           anywhere else in the clause except within the term _P.  Obvi-
+           ously, the set to be enumerated should be finite, and should
+           be enumerable by  Prolog in  finite  time.    It  is  possi-
+           ble for the provable instances to contain variables, but  in
+           this  case  the  list  _S  will  only  provide  an  imperfect
+           representation of what is in reality an infinite set.
+
+           If there are uninstantiated variables in _P which do not also
+           appear  in  _X,  then a  call  to  this  evaluable  predicate
+           may  backtrack,  generating   alternative   values   for   _S
+           corresponding  to different instantiations of the free vari-
+           ables of _P.  (It  is  to  cater  for such  usage  that   the
+           set  S  is  constrained  to be non-empty.)  For example, the
+           call:
+
+               | ?- setof(X, X likes Y, S).
+
+           might produce two alternative solutions via backtracking:
+
+               Y = beer,   S = [dick, harry, tom]
+               Y = cider,  S = [bill, jan, tom ]
+
+           The call:
+
+               | ?- setof((Y,S), setof(X, X likes Y, S), SS).
+
+           would then produce:
+
+               SS = [ (beer,[dick,harry,tom]), (cider,[bill,jan,tom]) ]
+
+
+           Variables occurring in _P will not be  treated  as  free   if
+           they   are explicitly  bound  within  _P  by  an  existential
+           quantifier.   An existential quantification is written:
+
+               _Y^_Q
+
+           meaning "there exists a _Y such that _Q is true", where  _Y  is
+           some  Prolog variable.  For example:
+
+               | ?- setof(X, Y^(X likes Y), S).
+
+           would produce the single result:
+
+               X = [bill, dick, harry, jan, tom]
+
+           in contrast to the earlier example.
+
+           bagof(_X,_P,_B_a_g)
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    47
+
+
+                This  is  exactly  the  same  as  setof   except   that
+                the  list  (or  alternative lists) returned will not be
+                ordered,  and  may  contain duplicates.   The effect of
+                this  relaxation is to save considerable time and space
+                in execution.
+
+           _X^_P
+
+                The  interpreter  recognises  this  as  meaning  "there
+                exists  an  _X  such that  _P  is true", and treats it as
+                equivalent  to  call(_P).   The  use  of  this  explicit
+                existential quantifier outside the setof and bagof con-
+                structs is superfluous.
+
+           _5._7.  _C_o_m_p_a_r_i_s_o_n _o_f _T_e_r_m_s
+
+                These   evaluable    predicates    are    meta-logical.
+           They   treat   uninstantiated  variables  as  objects   with
+           values  which  may  be  compared,  and  they  never  instan-
+           tiate  those  variables.   They should _n_o_t be used when what
+           you really want is arithmetic comparison  (Section  5.2)  or
+           unification.
+
+                The  predicates  make reference  to  a  standard  total
+           ordering of terms, which is as follows:
+
+           -    variables, in a standard order (roughly, oldest first -
+                the order  is _n_o_t related to the names of variables);
+
+           -    Database references, roughly in order of age;
+
+           -    numbers, from -"infinity" to +"infinity";
+
+           -    atoms, in alphabetical (i.e. ASCII) order;
+
+           -    complex  terms, ordered first by  arity,  then  by  the
+                name  of  principal  functor, then by the arguments (in
+                left-to-right order).
+
+                For example, here is a list of terms  in  the  standard
+           order:
+
+               [ X, -9, 1, fie, foe, fum, X = Y, fie(0,2), fie(1,1) ]
+
+           These are the basic predicates for comparison  of  arbitrary
+           terms:
+
+           _X == _Y
+
+                Tests if the terms currently instantiating _X and  _Y are
+                literally   identical   (in  particular,  variables  in
+                equivalent positions in the two terms must  be  identi-
+                cal).  For example, the question
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    48
+
+
+                    | ?- X == Y.
+
+                fails (answers "no") because  _X  and  _Y  are   distinct
+                uninstantiated variables.  However, the question
+
+                    | ?- X = Y, X == Y.
+
+                succeeds because the first goal unifies the  two  vari-
+                ables (see page 42).
+
+           _X \== _Y
+
+                Tests  if  the  terms  currently  instantiating  _X  and
+                _Y  are not literally identical.
+
+           _T_1 @< _T_2
+
+                Term _T_1 is before term _T_2 in the standard order.
+
+           _T_1 @> _T_2
+
+                Term _T_1 is after term _T_2 in the standard order.
+
+           _T_1 @=< _T_2
+
+                Term _T_1 is not after term _T_2 in the standard order.
+
+           _T_1 @>= _T_2
+
+                Term _T_1 is not before term _T_2 in the standard order.
+
+                Some further predicates involving comparison  of  terms
+           are:
+
+           compare(_O_p,_T_1,_T_2)
+
+                The  result  of comparing terms _T_1 and _T_2 is _O_p,  where
+                the possible values for _O_p are:
+
+                    `='   if _T_1 is identical to _T_2,
+
+                    `<'   if _T_1 is before _T_2 in the standard order,
+
+                    `>'   if _T_1 is after _T_2 in the standard order.
+
+                Thus compare(=,_T_1,_T_2) is equivalent to _T_1 == _T_2.
+
+           sort(_L_1,_L_2)
+
+                The elements of the list _L_1 are sorted into  the  stan-
+                dard  order, and any identical (i.e. `==') elements are
+                merged,  yielding  the  list _L_2.  (The time taken to do
+                this  is at worst order (N log N) where N is the length
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    49
+
+
+                of _L_1.)
+
+           keysort(_L_1,_L_2)
+
+                The  list  _L_1  must consist of items of the  form  _K_e_y-
+                _V_a_l_u_e.   These items are sorted into order according to
+                the value of _K_e_y, yielding  the  list  _L_2.  No  merging
+                takes  place.  (The  time taken to do this  is at worst
+                order (N log N) where N is the length of L1.)
+
+           _5._8.  _M_o_d_i_f_i_c_a_t_i_o_n _o_f _t_h_e _P_r_o_g_r_a_m
+
+                The predicates defined in this section allow  modifica-
+           tion  of the program as it is actually running.  Clauses can
+           be added to the program (_a_s_s_e_r_t_e_d) or removed from the  pro-
+           gram  (_r_e_t_r_a_c_t_e_d).   Some  of  the predicates make use of an
+           implementation-defined  identifier  or  _d_a_t_a_b_a_s_e   _r_e_f_e_r_e_n_c_e
+           which  uniquely  identifies  every clause in the interpreted
+           program.   This  identifier  makes  it  possible  to  access
+           clauses  directly, instead of requiring a search through the
+           program every time.  However these facilities  are  intended
+           for  more  complex  use of the database and are not required
+           (and undoubtedly should be avoided) by novice users.
+
+           assert(_C)
+
+                The current instance of _C is interpreted  as  a  clause
+                and is added to the program (with new private variables
+                replacing any uninstantiated variables).  The  position
+                of  the   new clause  within the procedure concerned is
+                implementation-defined.  _C must be  instantiated  to  a
+                non-variable.
+
+           assert(_C_l_a_u_s_e,_R_e_f)
+
+                Similar to assert(_C_l_a_u_s_e), but also  unifies  _R_e_f  with
+                the database reference of the clause asserted.
+
+           asserta(_C)
+
+                Like assert(_C), except that  the  new  clause   becomes
+                the  _f_i_r_s_t clause for the procedure concerned.
+
+           asserta(_C_l_a_u_s_e,_R_e_f)
+
+                Similar to asserta(_C_l_a_u_s_e), but also unifies  _R_e_f  with
+                the database reference of the clause asserted.
+
+           assertz(_C)
+
+                Like assert(_C), except that the  new   clause   becomes
+                the  _l_a_s_t clause for the procedure concerned.
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    50
+
+
+           assertz(_C_l_a_u_s_e,_R_e_f)
+
+                Similar to assertz(_C_l_a_u_s_e), but also unifies  _R_e_f  with
+                the database reference of the clause asserted.
+
+           clause(_P,_Q)
+
+                _P must  be  bound  to  a  non-variable  term,  and  the
+                program  is searched for a clause whose head matches _P.
+                The head and body of those clauses are unified  with  _P
+                and  _Q  respectively.   If one of the clauses is a unit
+                clause, _Q will be unified with `true'.
+
+           clause(_H_e_a_d,_B_o_d_y,_R_e_f)
+
+                Similar to clause(_H_e_a_d,_B_o_d_y) but also unifies _R_e_f  with
+                the  database reference of the clause concerned. If _R_e_f
+                is not given at the time of  the  call,  _H_e_a_d  must  be
+                instantiated  to  a non-variable term. Thus this predi-
+                cate can have two different modes of use, depending  on
+                whether  the  database reference of the clause is known
+                or unknown.
+
+           retract(_C)
+
+                The first clause in  the  program  that  matches  _C  is
+                erased.   _C  must  be  initially instantiated to a non-
+                variable.   The  predicate  may  be  used  in  a   non-
+                determinate fashion, i.e. it  will successively retract
+                clauses matching the argument through backtracking.
+
+           abolish(_N,_A) Completely remove all clauses for the procedure
+           with  name  _N  (which should be an atom), and arity _A (which
+           should be an integer).
+
+           The space occupied by retracted or abolished clauses will be
+           recovered when instances of the clause are no longer in use.
+
+           See also erase (Section 5.10) which allows a  clause  to  be
+           directly erased via its database reference[6].
+
+           _5._9.  _I_n_f_o_r_m_a_t_i_o_n _a_b_o_u_t _t_h_e _S_t_a_t_e _o_f _t_h_e _P_r_o_g_r_a_m
+
+           listing
+
+                Lists in the current output stream all the  clauses  in
+                the program.
+
+           ____________________
+              [6]This is a lower level facility, required only for com-
+           plicated database manipulations.
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    51
+
+
+           listing(_A)
+
+                The argument _A may be a predicate specification of  the
+                form  _N_a_m_e/_A_r_i_t_y in which case only the clauses for the
+                specified predicate are listed.  If _A is just an  atom,
+                then  the  interpreted procedures for all predicates of
+                that name are listed as for listing/0.  Finally, it  is
+                possible for _A to be a list of predicate specifications
+                of either type, e.g.
+
+                    | ?- listing([concatenate/3, reverse, go/0]).
+
+
+           current_atom(_A_t_o_m)
+
+                Generates (through backtracking)  all  currently  known
+                atoms, and returns each one as _A_t_o_m.
+
+           current_functor(_N_a_m_e,_F_u_n_c_t_o_r)
+
+                Generates (through backtracking)  all  currently  known
+                functors,  and  for  each one returns its name and most
+                general term as _N_a_m_e and _F_u_n_c_t_o_r respectively. If  _N_a_m_e
+                is given, only functors with that name are generated.
+
+           current_predicate(_N_a_m_e,_F_u_n_c_t_o_r)
+
+                Similar to current_functor, but it only generates func-
+                tors corresponding to predicates for which there exists
+                a procedure.
+
+           _5._1_0.  _I_n_t_e_r_n_a_l _D_a_t_a_b_a_s_e
+
+                This section describes predicates for  manipulating  an
+           internal  indexed  database  that  is kept separate from the
+           normal program database.  They are intended for more sophis-
+           ticated  database  applications and are not really necessary
+           for novice users.  For normal tasks you should  be  able  to
+           program quite satisfactorily just using assert and retract.
+
+           recorded(_K_e_y,_T_e_r_m,_R_e_f)
+
+                The internal database is searched  for  terms  recorded
+                under the key _K_e_y. These terms are successively unified
+                with _T_e_r_m in the order they occur in the  database.  At
+                the  same time, _R_e_f is unified with the database refer-
+                ence of the recorded item.  The key must be given,  and
+                may  be  an  atom  or complex term.  If it is a complex
+                term, only the principal functor is significant.
+
+           recorda(_K_e_y,_T_e_r_m,_R_e_f)
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    52
+
+
+                The term _T_e_r_m is recorded in the internal  database  as
+                the  first item for the key _K_e_y, where _R_e_f is its data-
+                base reference.  The key must be given,  and  only  its
+                principal functor is significant.
+
+           recordz(_K_e_y,_T_e_r_m,_R_e_f)
+
+                The term _T_e_r_m is recorded in the internal  database  as
+                the  last  item for the key _K_e_y, where _R_e_f is its data-
+                base reference.  The key must be given,  and  only  its
+                principal functor is significant.
+
+           erase(_R_e_f)
+
+                The recorded item _o_r clause whose database reference is
+                _R_e_f is effectively erased from the internal database or
+                program.  An erased item will no longer  be  accessible
+                through  the  predicates  that search through the data-
+                base, but will still be accessible through its database
+                reference,  if this is available in the execution state
+                after the call to erase. Only when all instances of the
+                item's  database  reference have been forgotten through
+                database erasures and/or backtracking will the item  be
+                actually removed from the database.
+
+           erased(_R)
+
+                Suceeds if _R is a database reference to a database item
+                that has been erased, otherwise fails.
+
+           instance(_R_e_f,_T_e_r_m)
+
+                A (most general) instance of the  recorded  term  whose
+                database  reference  is  _R_e_f  is unified with _T_e_r_m. _R_e_f
+                must be instantiated to a database reference. Note that
+                instance  will  even pick database items that have been
+                erased.
+
+           _5._1_1.  _D_e_b_u_g_g_i_n_g
+
+           debug
+
+                Debug mode is switched  on.  Information  will  now  be
+                retained  for  debugging  purposes  and executions will
+                require more space.
+
+           nodebug
+
+                Debug mode is switched off. Information  is  no  longer
+                retained for debugging, and spy points are removed.
+
+           trace
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    53
+
+
+                Debug mode is switched on, and the  interpreter  starts
+                tracing  from  the  next call to a user goal.  If trace
+                was given in a command on its own, the  goal(s)  traced
+                will  be  those  of  the next command.  Since this is a
+                once-off decision, a call to trace is  necessary  when-
+                ever  tracing  is  required  right from the start of an
+                execution, otherwise tracing will only  happen  at  spy
+                points.
+
+           spy _S_p_e_c
+
+                Spy points will be placed on all the  procedures  given
+                by  _S_p_e_c.   All control flow through the ports of these
+                procedures will henceforth be traced.   If  debug  mode
+                was  previously off, then it will be switched on.  _S_p_e_c
+                can either be a predicate  specification  of  the  form
+                _N_a_m_e/_A_r_i_t_y  or  _N_a_m_e, or a list of such specifications.
+                When the _N_a_m_e is given without the _A_r_i_t_y this refers to
+                all predicates of that name which currently have defin-
+                itions.  If there are none, then nothing will be  done.
+                Spy  points  can be placed on particular undefined pro-
+                cedures only by using the full form, _N_a_m_e/_A_r_i_t_y.
+
+           nospy _S_p_e_c
+
+                Spy points are removed from all the procedures given by
+                _S_p_e_c (as for spy).
+
+           leash(_M_o_d_e)
+
+                Sets the leashing mode to _M_o_d_e, where _M_o_d_e can  be  one
+                of the following
+
+
+                    full    prompt on Call, Exit, BackTo and Fail
+                    tight   prompt on Call, BackTo and Fail
+                    half    prompt on Call and BackTo
+                    loose   prompt on Call
+                    off     never prompt
+                    _N
+
+                            _N is an integer. If the binary notation of
+                            _N is 2'_c_e_b_f, the digits _c, _e, _b
+                            and _f correspond to the Call, Exit BackTo and Fail respectively,
+                            and are 1 (0) if the corresponding port is leashed (unleashed).
+
+
+                The  initial  _l_e_a_s_h_i_n_g _m_o_d_e is `half'.
+
+           debugging
+
+                Outputs information concerning the status of the debug-
+                ging package.  This will show whether debug mode is on,
+                and if it is
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    54
+
+
+                    what spy points have been set
+
+                    what mode of leashing is in force.
+
+
+           _5._1_2.  _E_n_v_i_r_o_n_m_e_n_t_a_l
+
+           'NOLC'
+
+                Establishes the no lower-case convention described   in
+                Section 2.4.
+
+           'LC'
+
+                Establishes  the  full   character    set    convention
+                described  in Section 2.4. It is the default setting.
+
+           op(_p_r_i_o_r_i_t_y,_t_y_p_e,_n_a_m_e)
+
+                Treat name _n_a_m_e as an operator of the stated  _t_y_p_e  and
+                _p_r_i_o_r_i_t_y  (refer  to  Section 2.2).  _n_a_m_e may also be a
+                list of names in which case all are to  be  treated  as
+                operators of the  stated  _t_y_p_e  and _p_r_i_o_r_i_t_y.
+
+           break
+
+                Causes the current  execution  to   be   suspended   at
+                the  next procedure  call.   Then  the message "[ Break
+                (level 1) ]" is displayed.   The  interpreter  is  then
+                ready   to   accept   input  as though  it  was  at top
+                level. If another call  of  break  is  encountered,  it
+                moves up to level 2, and so on.  To close the break and
+                resume the execution  which  was  suspended,  type  the
+                END-OF-INPUT  character.   Execution will be resumed at
+                the procedure call where it had been suspended.  Alter-
+                natively,  the  suspended  execution can  be aborted by
+                calling the evaluable predicate abort. Refer to Section
+                1.9.
+
+           abort
+
+                Aborts the current execution taking  you  back  to  top
+                level.  Refer to Section 1.9.
+
+           save(_F)
+
+                The system saves the current state of the  system  into
+                file  _F.  Refer to Section 1.6.
+
+           save(_F,_W_h_e_n)
+
+                Saves the current state of the  system  into  file   _F.
+                When  is  unified  with 0 or 1 depending on whether the
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    55
+
+
+                system is returning from the save goal in the  original
+                Prolog  session  or after the saved state in _F has been
+                restored by invoking Prlog with file _F as argument.
+
+           prompt(_O_l_d,_N_e_w)
+
+                The sequence of  characters  (prompt)  which  indicates
+                that   the   system   is  waiting  for  user  input  is
+                represented as an atom, and matched to  _O_l_d;  the  atom
+                bound  to  _N_e_w specifies the new prompt. In particular,
+                the goal
+
+                    prompt(X,X)
+
+                matches the current prompt to X, without  changing  it.
+                Note that this only affects the prompt issued for reads
+                in the user's program; it will not change  the  propmts
+                used by the system at top level etc.
+
+           system(_S_t_r_i_n_g)
+
+                Calls the operating system with string _S_t_r_i_n_g as  argu-
+                ment. For example
+
+                    system("ls")
+
+                will produce a directory listing on UNIX.
+
+           sh
+
+                Suspends C-Prolog and enters a recursive command inter-
+                preter.  On UNIX, the shell used will be that specified
+                in the environment variable SHELL.
+
+           statistics
+
+                Shows the current allocations and amounts used for each
+                of the six working areas of C-Prolog, and also the run-
+                time since C-Prolog started. For example:
+
+                    | ?- statistics.
+                    atom space: 64K (15596 bytes used)
+                    aux. stack: 8K (0 bytes used)
+                    trail: 64K (48 bytes used)
+                    heap: 256K (30664 bytes used)
+                    global stack: 256K (0 bytes used)
+                    local stack: 256K (300 bytes used)
+                    Runtime:     1.42 sec.
+                    | ?-
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    56
+
+
+           _5._1_3.  _P_r_e_p_r_o_c_e_s_s_i_n_g
+
+           expand_term(_T_1,_T_2)
+
+                Each top level term _T_1 read when consulting a  file  is
+                rewritten  into  _T_2  before being asserted or executed.
+                The default transformations provided by this  predicate
+                are the ones for grammar rules and for inline expansion
+                of arithmetic expressions.  The user may define further
+                transformations    as   clauses   for   the   predicate
+                term_expansion/2, which has  similar  arguments.   User
+                defined  transformations  are  applied  _b_e_f_o_r_e  system-
+                defined ones.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    57
+
+
+           _A_p_p_e_n_d_i_x _I -- _S_u_m_m_a_r_y _o_f _E_v_a_l_u_a_b_l_e _P_r_e_d_i_c_a_t_e_s
+
+           abolish(_F,_N)             Abolish the procedure named _F arity _N.
+           abort                    Abort execution of the current directive.
+           arg(_N,_T,_A)               The _Nth argument of term _T is _A.
+           assert(_C)                Assert clause _C.
+           assert(_C,_R)              Assert clause _C, ref. _R.
+           asserta(_C)               Assert _C as first clause.
+           asserta(_C,_R)             Assert _C as first clause, ref. _R.
+           assertz(_C)               Assert _C as last clause.
+           assertz(_C,_R)             Assert _C as last clause, ref. _R.
+           atom(_T)                  Term _T is an atom.
+           atomic(_T)                Term _T is an atom or integer.
+           bagof(_X,_P,_B)             The bag of _Xs such that _P is provable is _B.
+           break                    Break at the next procedure call.
+           call(_P)                  Execute the procedure call _P.
+           clause(_P,_Q)              There is a clause, head _P, body _Q.
+           clause(_P,_Q,_R)            There is an clause, head _P, body _Q, ref _R.
+           close(_F)                 Close file _F.
+           compare(_C,_X,_Y)           _C is the result of comparing terms _X and _Y.
+           consult(_F)               Extend the program with clauses from file _F.
+           current_atom(_A)          One of the currently defined atoms is _A.
+           current_functor(_A,_T)     A current functor is named _A, m.g. term _T.
+           current_predicate(_A,_P)   A current predicate is named _A, m.g. goal _P.
+           db_reference(_T)          _T is a database reference.
+           debug                    Switch on debugging.
+           debugging                Output debugging status information.
+           display(_T)               Display term _T on the terminal.
+           erase(_R)                 Erase the clause or record, ref. _R.
+           erased(_R)                The object with ref. _R has been erased.
+           expanded_exprs(_O,_N)      Expression expansion if _N=on.
+           expand_term(_T,_X)         Term _T is a shorthand which expands to term _X.
+           exists(_F)                The file _F exists.
+           fail                     Backtrack immediately.
+           fileerrors               Enable reporting of file errors.
+           functor(_T,_F,_N)           The top functor of term _T has name _F, arity _N.
+           get(_C)                   The next non-blank character input is _C.
+           get0(_C)                  The next character input is _C.
+           halt                     Halt Prolog, exit to the monitor.
+           instance(_R,_T)            A m.g. instance of the record ref. _R is _T.
+           integer(_T)               Term _T is an integer.
+           _Y is _X                   _Y is the value of arithmetic expression _X.
+           keysort(_L,_S)             The list _L sorted by key yields _S.
+           leash(_M)                 Set leashing mode to _M.
+           listing                  List the current program.
+           listing(_P)               List the procedure(s) _P.
+           name(_A,_L)                The name of atom or number _A is string _L.
+           nl                       Output a new line.
+           nodebug                  Switch off debugging.
+           nofileerrors             Disable reporting of file errors.
+           nonvar(_T)                Term _T is a non-variable.
+           nospy _P                  Remove spy-points from the procedure(s) _P.
+
+
+
+
+
+
+
+
+
+
+
+.
+           C-Prolog User's Manual                                    58
+
+
+           number(_T)                Term _T is a number.
+           op(_P,_T,_A)                Make atom _A an operator of type _T precedence _P.
+           primitive(_T)             _T is a number or a database reference
+           print(_T)                 Portray or else write the term _T.
+           prompt(_A,_B)              Change the prompt from _A to _B.
+           put(_C)                   The next character output is _C.
+           read(_T)                  Read term _T.
+           reconsult(_F)             Update the program with procedures from file _F.
+           recorda(_K,_T,_R)           Make term _T the first record under key _K, ref. _R.
+           recorded(_K,_T,_R)          Term _T is recorded under key _K, ref. _R.
+           recordz(_K,_T,_R)           Make term _T the last record under key _K, ref. _R.
+           rename(_F,_G)              Rename file _F to _G.
+           repeat                   Succeed repeatedly.
+           retract(_C)               Erase the first  clause of form _C.
+           save(_F)                  Save the current state of Prolog in file _F.
+           see(_F)                   Make file _F the current input stream.
+           seeing(_F)                The current input stream is named _F.
+           seen                     Close the current input stream.
+           setof(_X,_P,_B)             The set of _Xs such that _P is provable is _B.
+           sh                       Start a recursive shell
+           skip(_C)                  Skip input characters until after character _C.
+           sort(_L,_S)                The list _L sorted into order yields _S.
+           spy _P                    Set spy-points on the procedure(s) _P.
+           statistics               Display execution statistics.
+           system(_S)                Execute command _S.
+           tab(_N)                   Output _N spaces.
+           tell(_F)                  Make file _F the current output stream.
+           telling(_F)               The current output stream is named _F.
+           told                     Close the current output stream.
+           trace                    Switch on debugging and start tracing.
+           true                     Succeed.
+           var(_T)                   Term _T is a variable.
+           write(_T)                 Write the term _T.
+           writeq(_T)                Write the term _T, quoting names if necessary.
+           'LC'                     The following Prolog text uses lower case.
+           'NOLC'                   The following Prolog text uses upper case only.
+           !                        Cut any choices taken in the current procedure.
+           \+ _P                     Goal _P is not provable.
+           _X<_Y                      As numbers, _X is less than _Y.
+           _X=<_Y                     As numbers, _X is less than or equal to _Y.
+           _X>_Y                      As numbers, _X is greater than _Y.
+           _X>=_Y                     As numbers, _X is greater than or equal to _Y.
+           _X=_Y                      Terms _X and _Y are equal (i.e. unified).
+           _T=.._L                    The functor and args. of term _T comprise the list _L.
+           _X==_Y                     Terms _X and _Y are strictly identical.
+           _X\==_Y                    Terms _X and _Y are not strictly identical.
+           _X@<_Y                     Term _X precedes term _Y.
+           _X@=<_Y                    Term _X precedes or is identical _Y.
+           _X@>_Y                     Term _X follows term _Y.
+           _X@>=_Y                    Term _X follows or is identical to term _Y.
+           [_F|_R]                    Perform the (re)consult(s) specified by [_F|_R].
+
+
+
+
+
+
+
+

@@ -1,0 +1,258 @@
+***********************************************************************
+*                                                                     *
+*                  C Prolog                                           *
+*                  ========                                           *
+*                                                                     *
+*  By Fernando Pereira, July 1982.                                    *
+*  EdCAAD, Dept. of Architecture, University of Edinburgh.            *
+*                                                                     *
+*  Based on the Prolog system written in IMP by Luis Damas            *
+*  for ICL 2900 computers, with some contributions by                 *
+*  Lawrence Byrd.                                                     *
+*                                                                     *
+*  Copyright (C) 1982 Fernando Pereira, Luis Damas and Lawrence Byrd  *
+*                                                                     *
+***********************************************************************
+
+		********* WARNING *********
+
+Both the location (defined in parms.c) and the contents of the startup save
+state (startup) on this tape are unlikely to be correct for your
+installation. Please follow the instructions below to adapt parms.c to your
+installation and to build a new startup save state.
+
+		--------------------------
+C-Prolog 1.5 20 Feb 84
+
+Extended manual, many bug fixes and improvements.
+In particular, the debugger has been almost entirely rewritten and
+now has the `retry' command a la DEC-10 Prolog. This should make
+debugging much smoother. The command line switches that specify
+the sizes of working areas have been changed to be lower-case to
+avoid a problem with the VMS C implementation. The system has
+been checked under VMS, Eunice, and Berkeley Unix on VAXes and Suns.
+
+Identifiers have been changed to avoid name clashes in systems with
+Version 7 or System III C compilers. The system has not been tested
+on those systems, but it should now run in them with few modifications
+if any.
+
+The printout of the 'g' debugger command has been changed. Goals
+shown are preceded by
+
+	l (i)->(c)	
+
+where l is the recursion level, i the invocation number and c
+the position of the clause being used within its procedure.
+
+C-Prolog 1.4   28 July 83
+
+
+Revised and expanded manual.
+
+The compilation switch IEEE (see makefile) allows compilation of
+C-Prolog for implementations of 4.1/2 BSD Unix on machines with
+IEEE floating point (such as the SUN workstation).
+
+There are command line switches to specify the sizes of the various
+work areas of C-Prolog; adjustment between the sizes in a saved state
+and a starting C-Prolog is automatic.
+The switches are -H (heap), -G (global stack), -L (local stack),
+-T (trail), -A (atom space) and -X (auxiliary stack). each such switch
+should be followed by an integer argument that specifies the size in
+K bytes (see new version of the manual).
+
+There is a 'statistics' evaluable predicate that prints out the
+sizes and used amounts of the various work areas.
+
+The operation of expand_term has been cleaned up and as a result
+a new name, term_expansion, has been given to the user defined
+part of expand_term. 
+
+Several bugs have been fixed.
+
+C-Prolog 1.3   24 June 83
+
+The 'g' command to the debugger prints a stack backtrace in reverse
+order, with goals labeled by the distance from the current goal and
+by the position with its procedure of the clause being used to satisfy
+the goal.
+
+The debugger now shows and stops at FAIL ports, like the one on DEC-10/20
+Prolog.
+
+Several bugs have been fixed.
+
+---------------------------------------------------------------------
+
+CProlog 1.2b 9 May 83
+
+To install CProlog:
+
+Decide on names and locations for the interpreter and its startup file.
+Let's say you have decided on /usr/local/prolog for the interpreter
+and /usr/local/prolog-startup for the startup file, and that you have
+write access to the relevant directories, etc. Then you just need to
+type the following command
+
+	make install BIN=/usr/local/prolog PLSTARTUP=/usr/local/prolog-startup
+
+When this finishes, the system will be ready to use.
+These instructions supersede the previous ones below.
+
+================================================================
+
+Differences between CProlog 1.2a and 1.2 - 17 February 83
+
+- A bug which reported a syntax error in \+ (p,q) has been fixed.
+
+- A bug which caused atoms containing % to be printed without quotes by
+'writeq' has been fixed
+
+- A serious bug in the interaction between nested conjunctions and cut has
+been cured.
+
+- Bugs that caused the system to crash when returning from some functions in
+sysbits.c have been fixed.
+
+Outstanding problems:
+
+The types and casts in the sources of the system should be cleaned up to
+comform to the requirements of C compilers that are more strict than the
+Berkeley 4.1 compiler.
+
+News:
+
+The system has now been ported to the Apollo M68000-based workstation and to
+the 3 Rivers PERQ.
+
+Differences between CProlog 1.2 and previous versions
+Fernando Pereira, 6 Jan 83
+
+New evaluable predicates:
+
+primitive(X)
+
+	Tests whether X is a primitive object (number or database reference).
+
+db_reference(X)
+
+	Tests whether X is a database reference.
+
+sh		(UNIX only)
+
+	Forks a sub-shell (the one specified in the environment variable
+	SHELL, or "/bin/sh" if that is undefined)
+
+system(S)	(UNIX only)
+
+	Similar to the 'system' function defined in Section 3 of the UNIX
+	manual. S should be a Prolog string, for example
+
+		sh("ls")
+
+
+Changed features
+
+The operation of the debugger  has been somewhat improved:
+
+	It is no longer necessary to call 'trace' to see spy points.
+	
+	'trace' starts tracing from the next call to a user goal, even
+	if that user goal is called from the command immediately after the
+	command that invoked 'trace'. In previous versions, 'trace' had
+	to be called in the same command as the goal(s) to be traced.
+
+Cuts inside "metacalled" goals (goals called through the evaluable predicate
+'call' or a variable goal) no longer behave as if they appeared on the
+calling clause. That is, in previous versions, the program
+
+	p(X) :- X = 1, P = !, call(P).
+	p(2).
+
+would have just one solution X = 1, and now has the two solutions X = 1 and X
+= 2. The reason for the referentially non-transparent behaviour of the
+earlier versions was a bogus definition of the effect of 'call' in the
+DEC-10/20 Prolog manual, on which CProlog is based. The DEC-10/20 system DOES
+NOT behave as its manual states. CProlog version 1.2 and DEC-10/20 Prolog
+(version 3 or above) are therefore compatible in this respect.
+
+Numbers preceded by '-', eg.
+
+	-1.2  -1
+
+are treated by the reader as negative numbers, instead of as the unary
+operator '-' applied to a positive number.
+
+Bugs fixed
+
+Lots! I've not kept track...
+
+================================================================
+
+Things to know about CProlog version 1.1:
+
+When it starts, CProlog reads in a saved state with essential initialisation
+data. In the distributed version, this file should be placed in
+
+	/usr/local/lib/prolog/.plstartup
+
+If you want to change this, edit parms.c and recompile the system. The
+actual file is in this directory with name PLSTARTUP.
+
+The startup saved state can be reconstructed in the following way:
+
+	cd into this directory
+	prolog -b pl/init
+	['pl/all'].
+	:-save(startup).
+	halt.
+
+The startup file is now 'startup' in this directory, and you should move it
+to its final place as described above.
+
+Various system parameters, such as the name of the startup file and the
+sizes of work areas, are defined in the file parms.c. To change any of these
+parameters, edit this file and recompile the system using 'make'. If you
+change these parameters, old saved states should still work with the new
+system. However, I suspect there may be bugs in this area.
+
+
+Differences between this system and other similar Prolog systems (DEC-10/20
+Prolog, EMAS Prolog and PDP-11 Prolog):
+
+* Floating point! In particular, / is floating divide and // integer divide.
+Beware of this if you are moving programs from other Prologs. Most of the
+math functions in the C library are available as arithmetic operators, eg.
+you may write a goal
+
+	X is 3.5e2+sin(sqrt(Y))
+
+* database references returned by recorda/z and friends can be used in
+terms/clauses to be recorded/asserted;
+
+* prompting for alternatives at top level is like on DEC-10 Prolog, not like
+on EMAS or PDP-11 Prolog.
+
+* setof, bagof, compare, sort, keysort, @<, @=<, @>, @>= are available, and
+the same as in DEC-10 Prolog. Setof and bagof are very slow, though.
+
+A preliminary version of the user's manual for CProlog is in the directory
+'man'. A printable version can be made with the makefile there. The manual
+will print better if your output device can produce bold-face (we have a
+local version of 'nroff' that produces "bold" on line-printers by
+overstriking).
+
+Known Bugs
+==========
+
+***** FIXED in 1.2 *****
+The system accepts without complaint clauses whose body is a single integer,
+and then behaves strangely when such clauses are used. The cause of this is
+the mechanism for linking from Prolog to C to implement the evaluable
+predicates, which relies on clauses of that form. Some check should be made
+to forbid such clauses except when bootstrapping the system.
+*********
+
+Saved states should survive a change in the sizes of the work areas. They
+seem to survive sometimes, but not always. No known cure at present.

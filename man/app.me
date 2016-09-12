@@ -1,0 +1,107 @@
+.bp
+.uh "Appendix I \*- Summary of Evaluable Predicates"
+.TS H
+l l.
+.TH
+\fPabolish(\fIF\fP,\fIN\fP)	Abolish the procedure named \fIF\fP arity \fIN\fP.
+abort	Abort execution of the current directive.
+arg(\fIN\fP,\fIT\fP,\fIA\fP)	The \fIN\fPth argument of term \fIT\fP is \fIA\fP.
+assert(\fIC\fP)	Assert clause \fIC\fP.
+assert(\fIC\fP,\fIR\fP)	Assert clause \fIC\fP, ref. \fIR\fP.
+asserta(\fIC\fP)	Assert \fIC\fP as first clause.
+asserta(\fIC\fP,\fIR\fP)	Assert \fIC\fP as first clause, ref. \fIR\fP.
+assertz(\fIC\fP)	Assert \fIC\fP as last clause.
+assertz(\fIC\fP,\fIR\fP)	Assert \fIC\fP as last clause, ref. \fIR\fP.
+atom(\fIT\fP)	Term \fIT\fP is an atom.
+atomic(\fIT\fP)	Term \fIT\fP is an atom or integer.
+bagof(\fIX\fP,\fIP\fP,\fIB\fP)	The bag of \fIX\fPs such that \fIP\fP is provable is \fIB\fP.
+break	Break at the next procedure call.
+call(\fIP\fP)	Execute the procedure call \fIP\fP.
+clause(\fIP\fP,\fIQ\fP)	There is a clause, head \fIP\fP, body \fIQ\fP.
+clause(\fIP\fP,\fIQ\fP,\fIR\fP)	There is an clause, head \fIP\fP, body \fIQ\fP, ref \fIR\fP.
+close(\fIF\fP)	Close file \fIF\fP.
+compare(\fIC\fP,\fIX\fP,\fIY\fP)	\fIC\fP is the result of comparing terms \fIX\fP and \fIY\fP.
+consult(\fIF\fP)	Extend the program with clauses from file \fIF\fP.
+current_atom(\fIA\fP)	One of the currently defined atoms is \fIA\fP.
+current_functor(\fIA\fP,\fIT\fP)	A current functor is named \fIA\fP, m.g. term \fIT\fP.
+current_predicate(\fIA\fP,\fIP\fP)	A current predicate is named \fIA\fP, m.g. goal \fIP\fP.
+db_reference(\fIT\fP)	\fIT\fP is a database reference.
+debug	Switch on debugging.
+debugging	Output debugging status information.
+display(\fIT\fP)	Display term \fIT\fP on the terminal.
+erase(\fIR\fP)	Erase the clause or record, ref. \fIR\fP.
+erased(\fIR\fP)	The object with ref. \fIR\fP has been erased.
+expanded_exprs(\fIO\fP,\fIN\fP)	Expression expansion if \fIN\fP=on.
+expand_term(\fIT\fP,\fIX\fP)	Term \fIT\fP is a shorthand which expands to term \fIX\fP.
+exists(\fIF\fP)	The file \fIF\fP exists.
+fail	Backtrack immediately.
+fileerrors	Enable reporting of file errors.
+functor(\fIT\fP,\fIF\fP,\fIN\fP)	The top functor of term \fIT\fP has name \fIF\fP, arity \fIN\fP.
+get(\fIC\fP)	The next non-blank character input is \fIC\fP.
+get0(\fIC\fP)	The next character input is \fIC\fP.
+halt	Halt Prolog, exit to the monitor.
+instance(\fIR\fP,\fIT\fP)	A m.g. instance of the record ref. \fIR\fP is \fIT\fP.
+integer(\fIT\fP)	Term \fIT\fP is an integer.
+\fIY\fP is \fIX\fP	\fIY\fP is the value of arithmetic expression \fIX\fP.
+keysort(\fIL\fP,\fIS\fP)	The list \fIL\fP sorted by key yields \fIS\fP.
+leash(\fIM\fP)	Set leashing mode to \fIM\fP.
+listing	List the current program.
+listing(\fIP\fP)	List the procedure(s) \fIP\fP.
+name(\fIA\fP,\fIL\fP)	The name of atom or number \fIA\fP is string \fIL\fP.
+nl	Output a new line.
+nodebug	Switch off debugging.
+nofileerrors	Disable reporting of file errors.
+nonvar(\fIT\fP)	Term \fIT\fP is a non-variable.
+nospy \fIP\fP	Remove spy-points from the procedure(s) \fIP\fP.
+number(\fIT\fP)	Term \fIT\fP is a number.
+op(\fIP\fP,\fIT\fP,\fIA\fP)	Make atom \fIA\fP an operator of type \fIT\fP precedence \fIP\fP.
+primitive(\fIT\fP)	\fIT\fP is a number or a database reference
+print(\fIT\fP)	Portray or else write the term \fIT\fP.
+prompt(\fIA\fP,\fIB\fP)	Change the prompt from \fIA\fP to \fIB\fP.
+put(\fIC\fP)	The next character output is \fIC\fP.
+read(\fIT\fP)	Read term \fIT\fP.
+reconsult(\fIF\fP)	Update the program with procedures from file \fIF\fP.
+recorda(\fIK\fP,\fIT\fP,\fIR\fP)	Make term \fIT\fP the first record under key \fIK\fP, ref. \fIR\fP.
+recorded(\fIK\fP,\fIT\fP,\fIR\fP)	Term \fIT\fP is recorded under key \fIK\fP, ref. \fIR\fP.
+recordz(\fIK\fP,\fIT\fP,\fIR\fP)	Make term \fIT\fP the last record under key \fIK\fP, ref. \fIR\fP.
+rename(\fIF\fP,\fIG\fP)	Rename file \fIF\fP to \fIG\fP.
+repeat	Succeed repeatedly.
+retract(\fIC\fP)	Erase the first  clause of form \fIC\fP.
+save(\fIF\fP)	Save the current state of Prolog in file \fIF\fP.
+see(\fIF\fP)	Make file \fIF\fP the current input stream.
+seeing(\fIF\fP)	The current input stream is named \fIF\fP.
+seen	Close the current input stream.
+setof(\fIX\fP,\fIP\fP,\fIB\fP)	The set of \fIX\fPs such that \fIP\fP is provable is \fIB\fP.
+sh	Start a recursive shell
+skip(\fIC\fP)	Skip input characters until after character \fIC\fP.
+sort(\fIL\fP,\fIS\fP)	The list \fIL\fP sorted into order yields \fIS\fP.
+spy \fIP\fP	Set spy-points on the procedure(s) \fIP\fP.
+statistics	Display execution statistics.
+system(\fIS\fP)	Execute command \fIS\fP.
+tab(\fIN\fP)	Output \fIN\fP spaces.
+tell(\fIF\fP)	Make file \fIF\fP the current output stream.
+telling(\fIF\fP)	The current output stream is named \fIF\fP.
+told	Close the current output stream.
+trace	Switch on debugging and start tracing.
+true	Succeed.
+var(\fIT\fP)	Term \fIT\fP is a variable.
+write(\fIT\fP)	Write the term \fIT\fP.
+writeq(\fIT\fP)	Write the term \fIT\fP, quoting names if necessary.
+\&'LC'	The following Prolog text uses lower case.
+\&'NOLC'	The following Prolog text uses upper case only.
+!	Cut any choices taken in the current procedure.
+\e+ \fIP\fP	Goal \fIP\fP is not provable.
+\fIX\fP<\fIY\fP	As numbers, \fIX\fP is less than \fIY\fP.
+\fIX\fP=<\fIY\fP	As numbers, \fIX\fP is less than or equal to \fIY\fP.
+\fIX\fP>\fIY\fP	As numbers, \fIX\fP is greater than \fIY\fP.
+\fIX\fP>=\fIY\fP	As numbers, \fIX\fP is greater than or equal to \fIY\fP.
+\fIX\fP=\fIY\fP	Terms \fIX\fP and \fIY\fP are equal (i.e. unified).
+\fIT\fP=..\fIL\fP	The functor and args. of term \fIT\fP comprise the list \fIL\fP.
+\fIX\fP==\fIY\fP	Terms \fIX\fP and \fIY\fP are strictly identical.
+\fIX\fP\e==\fIY\fP	Terms \fIX\fP and \fIY\fP are not strictly identical.
+\fIX\fP@<\fIY\fP	Term \fIX\fP precedes term \fIY\fP.
+\fIX\fP@=<\fIY\fP	Term \fIX\fP precedes or is identical \fIY\fP.
+\fIX\fP@>\fIY\fP	Term \fIX\fP follows term \fIY\fP.
+\fIX\fP@>=\fIY\fP	Term \fIX\fP follows or is identical to term \fIY\fP.
+[\fIF\fP|\fIR\fP]	Perform the (re)consult(s) specified by [\fIF\fP|\fIR\fP].
+.TE

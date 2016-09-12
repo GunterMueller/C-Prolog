@@ -1,0 +1,105 @@
+/*
+
+Name:       HW1
+Author:     Kenneth Ray Barnhouse
+SSN:        245-29-5485
+Date:       5-Feb-1988
+Class:      CSE 511
+
+Purpose:    This programming assignment is a basic introduction to
+            PROLOG.  There are four parts to the homework assignments.
+            Each is commented below.
+
+*/
+
+/*
+
+QUESTION 1.
+
+Define some facts and rules in PROLOG.  
+
+*/
+
+man(fred).
+man(bill).
+woman(jane).
+woman(mary).
+dog(fido).
+dog(pluto).
+
+animal(X) :- dog(X).
+animal(X) :- human(X).
+human(X) :- man(X).
+human(X) :- woman(X).
+
+/*
+
+QUESTION 2.
+
+Define a prolog procedure called listall/1 that will list all the members of a
+class of objects.
+
+To solve this problem, I used the "fail" function to repeatly find fact
+of the form, Class(X) and write them out on the screen in a nice format.
+               
+*/
+
+listall(Class) :- Goal =.. [Class,X],
+                  call(Goal),
+                  write(X),write(' is a '),write(Class),nl,
+                  fail.
+
+listall(_).
+
+/*
+
+QUESTION 3: 
+
+define a procedure listof/2 that binds a list of members of a class,
+Class, to the variable, List.
+
+To solve this problem, I first needed to define a function, member,
+which would test to see if an atom is contanted in a list.  I next
+defined listof/2 to call a work function, listof2/3.  listof2/3 is a
+recursive procedure made of up two clauses.  This first clause will
+attempt to bind to a variable X a member of the class, Class.  Next, the
+clause checks to see if this member is already on the list.  If not, it
+calls itself to find other member of the class, Class other than the
+current value of X.  When listof2 clause 1 exits, it will add X to the
+final list,  List.  The second clause of the listof2 procedure is called
+only if the first clause fails.  this clause also defines the List to be
+null if no members of Class are found.
+
+Note:  The way I have implemented listof will only return the full list
+of members of a certain class.  If you remove the cut from the listof
+clause, listof will return not only the full list, but on repeated calls
+will return all sublist of the full list of members of the class.
+
+*/
+
+member(X,[X|_]).
+member(X,[_|T]) :- member(X,T).
+
+listof(Class,List) :- listof2(Class,[],List),!.
+
+listof2(Class,Found,[X|List]) :- Goal =.. [Class,X],
+                                 call(Goal),
+                                 \+ member(X,Found),
+                                 listof2(Class,[X|Found],List).
+listof2(_,_,List) :- List = [].
+
+/*
+
+QUESTION 4: 
+
+define a procedure count/1 that prints the number of members of a certain class.
+
+To solve this problems, I used the length built-in function and the
+listof function defined in Question 3.
+
+*/
+
+count(Class) :- listof(Class,List),
+                length(List,Size),
+                write('Number of '),write(Class),write(' = '),write(Size).
+
